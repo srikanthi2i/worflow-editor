@@ -1,0 +1,39 @@
+<html>
+
+<head>
+  <title>Workflow</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="workflow">
+    <div id="palette" class="palette">
+      <div id="drag-entity" draggable="true" ondragstart="drag(event)" ondragover="dragOver(event)">
+        <div class="inner">
+          <p>Entity</p>
+        </div>
+      </div>
+      <div id="drag-condition" draggable="true" ondragstart="drag(event)">
+        <p>Condition</p>
+      </div>
+      <p>zoom in</p>
+      <p>zoom out</p>
+    </div>
+    <div id="sheet">
+      <div id="workspace" ondrop="drop(event)" ondragover="allowDrop(event)" onmousemove="trackMouse(event)" onmouseup="stopTracking(event)">
+      </div>
+    </div>
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+      <h3 id="modal-header"></h3>
+        <span class="close">&times;</span>
+        Label<input type="text" class="input-text"><br>
+        <label>Data</label>
+        <div id="editor"></div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="index.js"></script>
+</body>
+</html>

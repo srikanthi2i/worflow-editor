@@ -1,0 +1,109 @@
+html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  #workflow {
+    position: relative;
+    display: block;
+    width: 1000px;
+    height: 500px;
+    margin: auto;
+    padding: 5px;
+    box-shadow: 1px 5px 20px #393939;
+  }
+
+  .palette {
+    padding: 0 5px 5px;
+    width: 52px;
+    position: absolute;
+    top: 5px;
+    left: -65px;
+    background: #f3f3f3;
+    box-shadow: 1px 5px 20px #393939;
+  }
+
+  .drag-item {
+    width: 50px;
+    height: 50px;
+    border: 1px dotted #aaa;
+    background: #faffb0;
+    margin-top: 5px;
+  }
+
+  #sheet {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+
+  #workspace {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #6df2ff;
+    border-top: none;
+    border-left: none;
+    background-size: 10px 10px;
+    background-color: #d9edf722;
+    background-image: linear-gradient(to right, #6df2ff 1px, transparent 1px), linear-gradient(to bottom, #6df2ff 1px, transparent 1px);
+    transform-origin: 0 0 0;
+    transition: transform 0.3s;
+    transition-timing-function: ease-in-out;
+    transform: translate(0, 0) scale(1);
+  }
+
+  .modal {
+    display: none;
+    position: absolute;
+    padding-top: 25px;
+    right: 0;
+    top: 0;
+    width: 30%;
+    height: 400px;
+    overflow: auto;
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+  }
+
+  .close {
+    position: absolute;
+    right: 15px;
+    top: 25px;
+    color: #aaaaaa;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  #editor {
+    height: 80px !important;
+    margin-top: 5px;
+  }
+
+  h3 { 
+    display: block;
+    font-size: 1.17em;
+    margin-top: 0em;
+    margin-bottom: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+  }
+
+  .input-text {
+    margin: 10px;
+  }
