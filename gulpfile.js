@@ -1,7 +1,7 @@
 var gulp = require('gulp'),
     browserSync = require('browser-sync');
 
-gulp.task('start', function () {
+gulp.task('default', function () {
    var files = [
       'index.html',
       'styles.css',
