@@ -1,4 +1,5 @@
-import Base from 'Base';
+import Base from '../base/Base';
+import './palette.css';
 
 export default class Palette extends Base {
   constructor() {

@@ -1,6 +1,7 @@
-import Base from 'Base';
-import Workspace from 'Workspace';
-import Palette from 'Palette';
+import Base from '../base/Base';
+import Workspace from '../workspace/Workspace';
+import Palette from '../palette/Palette';
+import './workflow.css';
 
 export default class Workflow extends Base {
   constructor() {

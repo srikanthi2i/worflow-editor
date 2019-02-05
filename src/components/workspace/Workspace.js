@@ -1,4 +1,5 @@
-import Base from 'Base';
+import Base from '../base/Base';
+import './workspace.css';
 
 export default class Workspace extends Base {
   constructor() {

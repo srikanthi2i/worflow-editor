@@ -1,5 +1,3 @@
-import Workflow from 'Workflow';
+import Workflow from './components/workflow/Workflow';
 
-const workflow = new Workflow();
-
-document.getElementById('root').appendChild(workflow);
+document.getElementById('root').appendChild(new Workflow().create());

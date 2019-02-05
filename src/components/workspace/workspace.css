@@ -1,0 +1,21 @@
+#sheet {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+
+#workspace {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #6df2ff;
+  border-top: none;
+  border-left: none;
+  background-size: 10px 10px;
+  background-color: #d9edf722;
+  background-image: linear-gradient(to right, #6df2ff 1px, transparent 1px), linear-gradient(to bottom, #6df2ff 1px, transparent 1px);
+  transform-origin: 0 0 0;
+  transition: transform 0.3s;
+  transition-timing-function: ease-in-out;
+  transform: translate(0, 0) scale(1);
+}

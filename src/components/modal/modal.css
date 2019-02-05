@@ -1,0 +1,53 @@
+#modal {
+  display: none;
+  position: absolute;
+  padding-top: 25px;
+  right: 0;
+  top: 0;
+  width: 30%;
+  height: 400px;
+  overflow: auto;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.close {
+  position: absolute;
+  right: 15px;
+  top: 25px;
+  color: #aaaaaa;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#editor {
+  height: 80px !important;
+  margin-top: 5px;
+}
+
+h3 { 
+  display: block;
+  font-size: 1.17em;
+  margin-top: 0em;
+  margin-bottom: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+.input-text {
+  margin: 10px;
+}
