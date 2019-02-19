@@ -10,10 +10,14 @@ export default class Workflow extends Base {
 
   create() {
     return this.ce('div', {
-      id: 'workflow'
+      id: 'workflow',
+      style: 'background: #fff;'
     }, [
-      new Palette(),
-      new Workspace()
+      new Palette().create(),
+      this.ce('div', {
+        id: 'workspace-container',
+        style: 'width: 100%; height: 100%; background: #00000033; overflow: hidden;'
+      }, new Workspace().create())
     ]);
   }
 }

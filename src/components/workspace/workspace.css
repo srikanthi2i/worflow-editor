@@ -12,7 +12,7 @@
   border-top: none;
   border-left: none;
   background-size: 10px 10px;
-  background-color: #d9edf722;
+  background-color: #ffffff;
   background-image: linear-gradient(to right, #6df2ff 1px, transparent 1px), linear-gradient(to bottom, #6df2ff 1px, transparent 1px);
   transform-origin: 0 0 0;
   transition: transform 0.3s;

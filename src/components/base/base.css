@@ -1,0 +1,21 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+label {
+  width: 30%;
+  display: inline-block;
+}
+
+input[type=text] {
+  width: 70%;
+  padding: 10px;
+  margin: 10px 0;
+  display: inline-block;
+  border: 1px solid #6df2ff;
+  border-radius: 4px;
+  box-sizing: border-box;
+  outline: none;
+}

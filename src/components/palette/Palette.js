@@ -5,43 +5,37 @@ export default class Palette extends Base {
   constructor() {
     super();
     this.palette;
-    this.create();
     this.dragElem;
-    this.dragComponent.bind(this);
-    this.dragOverComponent.bind(this);
-    return this.palette;
   }
 
-  dragComponent(e) {
-    console.log('dragComponent', e);
+  dragStart(e) {
+    var dropStyle = 'width: 100px; height: 100px;';
     e.dataTransfer.setData('data', e.target.id);
+    this.dragElem = e.target.cloneNode(true);
+    this.ce(this.dragElem, {
+      nativeStyle: {
+        position: 'absolute',
+        zIndex: -1,
+        top: '100px',
+        left: '100px'
+      }
+    });
     if (e.target.id === 'event') {
-
-      this.dragElem = e.target.cloneNode(true);
-      this.dragElem.style.position = "absolute";
-      this.dragElem.style.width = "10px";
-      this.dragElem.style.height = "10px";
-      this.dragElem.style.top = "100px";
-      this.dragElem.style.left = "100px";
-      this.dragElem.style.zIndex = -1;
-
-      var inner = this.dragElem.getElementsByClassName("drag-item")[0];
-      inner.style.position = "absolute";
-      inner.style.width = "100px";
-      inner.style.height = "100px";
-      inner.style.top = "0px";
-      inner.style.left = "0px";
-      inner.style.backgroundColor = "orange";
-      inner.style.transform = `scale(${current.zoom})`;
-
-      document.body.appendChild(this.dragElem);
-      e.dataTransfer.setDragImage(this.dragElem, 20, 20);
+      dropStyle += `border-radius: 50%; transform: scale(1);`;
+    } else if (e.target.id === 'action') {
+      dropStyle += `height: 50px; transform: scale(1);`;
+    } else {
+      dropStyle += `transform: rotate(45deg) scale(1);`;
     }
+    this.ce(this.dragElem.getElementsByClassName("drag-item")[0], {
+      style: dropStyle,
+    });
+    document.getElementById('workflow').appendChild(this.dragElem);
+    e.dataTransfer.setDragImage(this.dragElem, 20, 20);
   }
 
-  dragOverComponent(e) {
+  dragOver(e) {
     this.dragElem.remove();
-    console.log('dragOverComponent', e, this.dragElem);
   }
 
   create() {
@@ -53,35 +47,36 @@ export default class Palette extends Base {
         id: 'event',
         draggable: true,
         on: {
-          drag: this.dragComponent,
-          dragover: this.dragOverComponent
+          dragstart: this.dragStart.bind(this),
+          dragover: this.dragOver.bind(this)
         }
       }, this.ce('div', {
         class: 'drag-item',
-        style: 'border-radius: 50%;'
+        style: 'margin-top: 5px; border-radius: 50%;'
       })),
       this.ce('div', {
         id: 'action',
         draggable: true,
         on: {
-          drag: this.dragComponent,
-          dragover: this.dragOverComponent
+          dragstart: this.dragStart.bind(this),
+          dragover: this.dragOver.bind(this)
         }
       }, this.ce('div', {
         class: 'drag-item',
-        style: 'height: 25px;'
+        style: 'margin-top: 5px; height: 25px;'
       })),
       this.ce('div', {
         id: 'condition',
         draggable: true,
         on: {
-          drag: this.dragComponent,
-          dragover: this.dragOverComponent
+          dragstart: this.dragStart.bind(this),
+          dragover: this.dragOver.bind(this)
         }
       }, this.ce('div', {
         class: 'drag-item',
-        style: 'transform: rotate(45deg) scale(0.75)'
+        style: 'margin-top: 5px; transform: rotate(45deg) scale(0.75)'
       }))
     ]);
+    return this.palette;
   }
 }
