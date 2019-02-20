@@ -1,3 +1,5 @@
+import './base.css';
+
 export default class Base {
   constructor() {
 

@@ -19,3 +19,7 @@ input[type=text] {
   box-sizing: border-box;
   outline: none;
 }
+
+div #workflow * {
+  box-sizing: border-box;
+}

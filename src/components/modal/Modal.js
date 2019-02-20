@@ -1,9 +1,16 @@
 import Base from '../base/Base';
+import ace from 'ace-builds';
 import './modal.css';
 
 export default class Modal extends Base {
   constructor(component) {
     super();
+    var head = document.getElementsByTagName('head')[0];
+    var theScript = document.createElement('script');
+    theScript.type = 'text/javascript';
+    theScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js';
+    theScript.onload = this.initAce.bind(this);
+    head.appendChild(theScript);
     this.component = component;
     this.editor = this.ce('div', {
       id: 'editor',
@@ -12,8 +19,16 @@ export default class Modal extends Base {
       }
     });
     this.getTabContent('display');
-    ace.edit(this.editor);
     this.modal;
+  }
+
+  initAce() {
+    var editor = ace.edit(this.editor);
+    editor.setOptions({
+      "highlightActiveLine": false,
+      "minLines": 20,
+      "tabSize": 2
+    });
   }
 
   open() {

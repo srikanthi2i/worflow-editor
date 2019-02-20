@@ -1,4 +1,5 @@
 import Base from '../base/Base';
+import Modal from '../modal/Modal';
 import './workspace.css';
 
 export default class Workspace extends Base {
@@ -36,7 +37,39 @@ export default class Workspace extends Base {
       zoom: 1
     }
     this.highlighted;
-    this.flows = [];
+    this.flows = [{
+      id: 'comp-12345',
+      data: {},
+      key: '',
+      label: 'Start',
+      out: [{
+        direction: 'top',
+        destination: '',
+        completed: true,
+        height: 10,
+        points: [{
+          x: 0,
+          y: 20
+        }],
+        position: {
+          x: '',
+          y: ''
+        },
+        width: 250
+      }],
+      in: [{
+        direction: 'right',
+        source: '',
+      }, {
+        direction: 'right',
+        source: '',
+      }],
+      position: {
+        x: 50,
+        y: 50
+      },
+      type: 'event'
+    }];
   }
 
   zoom(e) {
@@ -78,7 +111,8 @@ export default class Workspace extends Base {
       data: {},
       key: droppedId,
       label: droppedId,
-      nodes: [],
+      out: [],
+      in: [],
       position: {
         x: (e.layerX - (this.current.x + 20)) / this.current.zoom,
         y: (e.layerY - (this.current.y + 20)) / this.current.zoom
@@ -114,10 +148,7 @@ export default class Workspace extends Base {
         }
       })
     ];
-
-    if (comp.nodes.length) {
-      compChildren.push(comp.nodes.map((node, index) => this.addNode(node)));
-    }
+    compChildren.push(this.getAvailableDirections().map((line) => this.addNode(line)));
 
     var wrappedComp = this.ce('div', {
       id: comp.id,
@@ -162,23 +193,18 @@ export default class Workspace extends Base {
         this.component = comp;
       }
     });
-    var node = {
-      direction: '',
-      destination: {
-        direction: '',
-        id: ''
-      },
-      lines: []
-    }
-    var addDirections = ['top', 'right', 'bottom', 'left'];
-    var tempNodes = e.target.getElementsByClassName('node-' + componentId);
-    [...tempNodes].forEach((node) => {
-      addDirections.splice(addDirections.indexOf(node.dataset.direction), 1);
+    let tempDirections = ['top', 'right', 'bottom', 'left'];
+    this.getAvailableDirections().map(direction => {
+      tempDirections.splice(tempDirections.indexOf(direction), 1)
     });
-    addDirections.forEach((direction) => {
-      node.direction = direction;
-      e.target.appendChild(this.addNode(node, componentId));
+    tempDirections.map(direction => {
+      e.target.appendChild(this.addNode(direction, 'temp'));
     });
+  }
+
+  getAvailableDirections() {
+    const availableDirections = [...this.component.out.map(line => (line.direction)), ...this.component.in.map(line => (line.direction))];
+    return availableDirections.filter((direction, index) => availableDirections.indexOf(direction) === index);
   }
 
   hideNodes(e) {
@@ -193,15 +219,15 @@ export default class Workspace extends Base {
     this.component = null;
   }
 
-  addNode(node, isTemp) {
+  addNode(direction, isTemp) {
     var nodeStyle =
       'width: 15px; height: 15px; position: absolute; z-index: -1; border-radius: 50%; cursor: crosshair;';
     const calc = this.component.type === 'condition' ? 0 : 50;
-    if (node.direction === 'top') {
+    if (direction === 'top') {
       nodeStyle += `top: -8px; left: calc(${calc}% - 8px);`;
-    } else if (node.direction === 'right') {
+    } else if (direction === 'right') {
       nodeStyle += `right: -8px; top: calc(${calc}% - 8px);`;
-    } else if (node.direction === 'bottom') {
+    } else if (direction === 'bottom') {
       nodeStyle += `bottom: -8px; right: calc(${calc}% - 8px);`;
     } else {
       if (calc) {
@@ -209,10 +235,10 @@ export default class Workspace extends Base {
       }
     }
     var createdNode = this.ce('div', {
-      id: 'node-' + `${isTemp ? isTemp: this.component.id}`,
+      id: 'node-' + `${this.component.id}-${direction}`,
       class: 'node-' + `${isTemp ? isTemp+' temp': this.component.id}`,
       style: nodeStyle,
-      ['data-direction']: node.direction,
+      ['data-direction']: direction,
       on: {
         mousedown: this.mouseDown.bind(this),
         mousemove: this.mouseMove.bind(this),
@@ -247,8 +273,9 @@ export default class Workspace extends Base {
       return;
     }
     e.preventDefault();
-    if (event.target.parentElement.id.indexOf('comp') === 0) {
-      this.element = event.target.parentElement;
+    if (e.target.parentElement.id.indexOf('comp') === 0) {
+      this.element = e.target.parentElement;
+      this.element.style.cursor = 'grabbing';
       this.flows.forEach((comp) => {
         if (comp.id === this.element.id) {
           this.component = comp;
@@ -257,26 +284,18 @@ export default class Workspace extends Base {
       this.initCompMove(e);
       e.stopPropagation();
     } else if (e.target.parentElement.id.indexOf('node') === 0) {
-      this.element = event.target.parentElement;
+      this.element = e.target.parentElement;
       this.flows.forEach((comp) => {
         if (this.element.id.indexOf(comp.id) >= 0) {
           this.component = comp;
         }
       });
-      const node = {
-        direction: this.element.dataset.direction,
-        destination: {
-          direction: '',
-          id: ''
-        },
-        lines: []
-      }
-      event.target.parentElement.classList.remove('temp');
-      this.component.nodes.push(node);
-      this.initLineDraw(e, node, this.component.nodes.length);
+      e.target.parentElement.classList.remove('temp');
+      this.initLineDraw(e);
       e.stopPropagation();
     } else {
       this.element = this.workspace;
+      this.element.style.cursor = 'grabbing';
       this.initWorkspaceMove(e);
     }
   }
@@ -299,8 +318,10 @@ export default class Workspace extends Base {
       return;
     }
     if (this.element.id.indexOf('workspace') === 0) {
+      this.element.style.cursor = 'default';
       this.endWorkspaceMove(e);
     } else if (this.element.id.indexOf('comp') === 0) {
+      this.element.style.cursor = 'default';
       this.endCompMove(e);
     } else if (this.element.id.indexOf('node') === 0) {
       this.endLineDraw(e);
@@ -311,8 +332,16 @@ export default class Workspace extends Base {
 
   initWorkspaceMove(e) {
     const rect = document.getElementById('workspace').getBoundingClientRect();
-    this.offset.x = e.offsetX * this.current.zoom;
-    this.offset.y = e.offsetY * this.current.zoom;
+    const offsetCalc = {
+      x: e.offsetX,
+      y: e.offsetY
+    }
+    if (e.target.id.indexOf('workspace') != 0) {
+      offsetCalc.x = e.x - rect.x;
+      offsetCalc.y = e.y - rect.y;
+    }
+    this.offset.x = offsetCalc.x * this.current.zoom;
+    this.offset.y = offsetCalc.y * this.current.zoom;
     this.element.style.transition = 'none';
     this.element.style.transitionTimingFunction = 'unset';
   }
@@ -359,28 +388,49 @@ export default class Workspace extends Base {
     this.offset = {};
   }
 
-  initLineDraw(e, node, index) {
+  initLineDraw(e) {
     const rect = document.getElementById('workspace').getBoundingClientRect();
     const correction = {
-      x: (1 - e.offsetX) * this.current.zoom*1.5,
-      y: (1 - e.offsetY) * this.current.zoom*1.5
+      x: (1 - e.offsetX) * this.current.zoom * 1.5,
+      y: (1 - e.offsetY) * this.current.zoom * 1.5
     }
     this.offset.x = e.x + correction.x;
     this.offset.y = e.y + correction.y;
+    const line = {
+      id: 'line' + this.component + '-' + this.component.out.length,
+      direction: this.element.dataset.direction,
+      destination: '',
+      position: {
+        x: (this.offset.x - rect.x) / this.current.zoom,
+        y: (this.offset.y - rect.y) / this.current.zoom
+      },
+      height: 15,
+      width: 15,
+      points: [{
+        x: 0,
+        y: 0
+      }],
+      completed: false
+    }
+    this.component.out.push(line);
+    this.createLineSVG(line);
+  }
+  
+  createLineSVG(line) {
     this.svg = this.ce({
       namespace: 'http://www.w3.org/2000/svg',
       tag: 'svg'
     }, {
-      id: 'line-' + this.component.id,
+      id: line.id,
       style: 'position: absolute; z-index: -2; cursor: crosshair;' +
-        `transform: translate(${(this.offset.x - rect.x) / this.current.zoom}px, ${(this.offset.y - rect.y) / this.current.zoom}px);`,
-      width: 15,
-      height: 15
+        `transform: translate(${line.position.x}px, ${line.position.y}px);`,
+      width: line.width,
+      height: line.height
     }, this.ce({
       namespace: 'http://www.w3.org/2000/svg',
       tag: 'path'
     }, {
-      id: 'path1',
+      id: 'path-1',
       nativeStyle: {
         strokeWidth: 3,
         opacity: 1,
@@ -390,6 +440,7 @@ export default class Workspace extends Base {
   }
 
   drawLine(e) {
+    this.line;
     if (Object.keys(this.offset).length) {
       const displaceX = (e.x - this.offset.x) / this.current.zoom;
       const displaceY = (e.y - this.offset.y) / this.current.zoom;
@@ -420,6 +471,10 @@ export default class Workspace extends Base {
         ['stroke-dasharray']: '5,5',
         d: points,
       });
+      this.line = {
+        x: 60,
+        y: 5
+      }
       this.svg.appendChild(newPath);
       this.workspace.appendChild(this.svg);
     }
@@ -432,6 +487,24 @@ export default class Workspace extends Base {
         ['stroke-dasharray']: ''
       });
       this.svg.appendChild(newPath);
+      const topArrow = `M 5 50 L 10 32.5  L 15 50 z`;
+      const rightArrow = `M 50 5 L 62.5 10  L 50 15 z`;
+      const bottomArrow = `M 5 50 L 10 62.5  L 15 50 z`;
+      const leftArrow = `M50 5 L 37.5 10  L 50 15 z`;
+      const arrow = this.ce({
+        namespace: 'http://www.w3.org/2000/svg',
+        tag: 'path'
+      }, {
+        id: 'arrow',
+        nativeStyle: {
+          strokeWidth: 3,
+          opacity: 1,
+          stroke: 'black'
+        },
+        d: bottomArrow,
+      });
+      console.log(arrow);
+      this.svg.appendChild(arrow);
       this.svg.style.cursor = 'default';
       e.target.parentElement.classList.remove('temp');
     } else {

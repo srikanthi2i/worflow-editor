@@ -1,6 +1,6 @@
 .palette {
   padding: 0 5px 5px;
-  width: 52px;
+  width: 60px;
   position: absolute;
   top: 0;
   left: -65px;
@@ -13,4 +13,8 @@
   height: 50px;
   border: 1px dotted #aaa;
   background: #faffb0;
+}
+
+.palette .drag-item {
+  cursor: grabbing;
 }
