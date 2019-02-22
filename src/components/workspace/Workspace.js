@@ -38,38 +38,176 @@ export default class Workspace extends Base {
     }
     this.highlighted;
     this.flows = [{
-      id: 'comp-12345',
-      data: {},
-      key: '',
-      label: 'Start',
-      out: [{
-        direction: 'top',
-        destination: '',
-        completed: true,
-        height: 10,
-        points: [{
-          x: 0,
-          y: 20
+        "id": "comp-12345",
+        "data": {},
+        "key": "",
+        "label": "Start",
+        "out": [{
+          "id": "linecomp-12345-1",
+          "direction": "right",
+          "destination": "comp-063733",
+          "position": {
+            "x": 277,
+            "y": 123
+          },
+          "height": 28,
+          "width": 110,
+          "points": [{
+            "x": 100,
+            "y": 18
+          }],
+          "completed": false
         }],
-        position: {
-          x: '',
-          y: ''
+        "in": [],
+        "position": {
+          "x": 184,
+          "y": 80
         },
-        width: 250
-      }],
-      in: [{
-        direction: 'right',
-        source: '',
-      }, {
-        direction: 'right',
-        source: '',
-      }],
-      position: {
-        x: 50,
-        y: 50
+        "type": "event"
       },
-      type: 'event'
-    }];
+      {
+        "id": "comp-063733",
+        "data": {},
+        "key": "action",
+        "label": "Track",
+        "out": [{
+          "id": "linecomp-063733-0",
+          "direction": "bottom",
+          "destination": "comp-295841",
+          "position": {
+            "x": 416.5,
+            "y": 150.5
+          },
+          "height": 111.5,
+          "width": 19.5,
+          "points": [{
+            "x": 9.5,
+            "y": 101.5
+          }],
+          "completed": false
+        }],
+        "in": [{
+          "direction": "left",
+          "source": "comp-12345"
+        }],
+        "position": {
+          "x": 373,
+          "y": 108
+        },
+        "type": "action"
+      },
+      {
+        "id": "comp-295841",
+        "data": {},
+        "key": "condition",
+        "label": "Is Passed",
+        "out": [{
+            "id": "linecomp-295841-0",
+            "direction": "right",
+            "destination": "comp-103524",
+            "position": {
+              "x": 483.5,
+              "y": 311.5
+            },
+            "height": 13.5,
+            "width": 139.5,
+            "points": [{
+              "x": 129.5,
+              "y": 3.5
+            }],
+            "completed": false
+          },
+          {
+            "id": "linecomp-295841-2",
+            "direction": "bottom",
+            "destination": "comp-605937",
+            "position": {
+              "x": 413.5,
+              "y": 382.5
+            },
+            "height": 109.5,
+            "width": 22.5,
+            "points": [{
+              "x": 12.5,
+              "y": 99.5
+            }],
+            "completed": false
+          }
+        ],
+        "in": [{
+          "direction": "top",
+          "source": "comp-063733"
+        }],
+        "position": {
+          "x": 372,
+          "y": 267
+        },
+        "type": "condition"
+      },
+      {
+        "id": "comp-103524",
+        "data": {},
+        "key": "action",
+        "label": "Mailed",
+        "out": [{
+          "id": "linecomp-103524-0",
+          "direction": "right",
+          "destination": "comp-342539",
+          "position": {
+            "x": 703.5,
+            "y": 312
+          },
+          "height": 22,
+          "width": 145.5,
+          "points": [{
+            "x": 135.5,
+            "y": 12
+          }],
+          "completed": false
+        }],
+        "in": [{
+          "direction": "left",
+          "source": "comp-295841"
+        }],
+        "position": {
+          "x": 610,
+          "y": 294
+        },
+        "type": "action"
+      },
+      {
+        "id": "comp-605937",
+        "data": {},
+        "key": "event",
+        "label": "Stop",
+        "out": [],
+        "in": [{
+          "direction": "top",
+          "source": "comp-295841"
+        }],
+        "position": {
+          "x": 371,
+          "y": 473
+        },
+        "type": "event"
+      },
+      {
+        "id": "comp-342539",
+        "data": {},
+        "key": "event",
+        "label": "Stop",
+        "out": [],
+        "in": [{
+          "direction": "left",
+          "source": "comp-103524"
+        }],
+        "position": {
+          "x": 836,
+          "y": 270
+        },
+        "type": "event"
+      }
+    ];
   }
 
   zoom(e) {
@@ -119,9 +257,17 @@ export default class Workspace extends Base {
       },
       type: droppedId
     };
+    if (component.type === 'condition') {
+      component.position.x += 20;
+      component.position.y += 20;
+    }
     this.flows.push(component);
     this.workspace.appendChild(this.placeComponent(component));
-    this.workspace.parentNode.appendChild(new Modal(component).open());
+    if (this.modal) {
+      this.modal.remove();
+    }
+    this.modal = new Modal(component).open()
+    this.workspace.parentNode.appendChild(this.modal);
   }
 
   placeComponent(comp) {
@@ -137,7 +283,7 @@ export default class Workspace extends Base {
       compStyle += 'height: 50px';
     } else if (comp.type === 'condition') {
       wrapperStyle +=
-        `transform: translate(${comp.position.x += 20}px, ${comp.position.y += 20}px) rotate(45deg)`;
+        `transform: translate(${comp.position.x}px, ${comp.position.y}px) rotate(45deg)`;
     }
     var compChildren = [
       this.ce('span', {
@@ -149,6 +295,7 @@ export default class Workspace extends Base {
       })
     ];
     compChildren.push(this.getAvailableDirections().map((line) => this.addNode(line)));
+    comp.out.map(line => this.createLineSVG(line));
 
     var wrappedComp = this.ce('div', {
       id: comp.id,
@@ -268,11 +415,11 @@ export default class Workspace extends Base {
   }
 
   mouseDown(e) {
+    e.preventDefault();
     if (this.svg) {
       this.svg.remove();
       return;
     }
-    e.preventDefault();
     if (e.target.parentElement.id.indexOf('comp') === 0) {
       this.element = e.target.parentElement;
       this.element.style.cursor = 'grabbing';
@@ -288,6 +435,7 @@ export default class Workspace extends Base {
       this.flows.forEach((comp) => {
         if (this.element.id.indexOf(comp.id) >= 0) {
           this.component = comp;
+          this.source = comp;
         }
       });
       e.target.parentElement.classList.remove('temp');
@@ -309,7 +457,7 @@ export default class Workspace extends Base {
     } else if (this.element.id.indexOf('comp') === 0) {
       this.moveComp(e);
     } else if (this.element.id.indexOf('node') === 0) {
-      this.drawLine(e);
+      this.trackLinePoints(e);
     }
   }
 
@@ -391,18 +539,19 @@ export default class Workspace extends Base {
   initLineDraw(e) {
     const rect = document.getElementById('workspace').getBoundingClientRect();
     const correction = {
-      x: (1 - e.offsetX) * this.current.zoom * 1.5,
-      y: (1 - e.offsetY) * this.current.zoom * 1.5
+      x: (e.offsetX * 1.5) * this.current.zoom,
+      y: (e.offsetY * 1.5) * this.current.zoom
     }
-    this.offset.x = e.x + correction.x;
-    this.offset.y = e.y + correction.y;
-    const line = {
-      id: 'line' + this.component + '-' + this.component.out.length,
+    const highlightOffset = 15 - 15 / 1.5;
+    this.offset.x = e.x - correction.x;
+    this.offset.y = e.y - correction.y;
+    this.line = {
+      id: 'line' + this.component.id + '-' + this.component.out.length,
       direction: this.element.dataset.direction,
       destination: '',
       position: {
-        x: (this.offset.x - rect.x) / this.current.zoom,
-        y: (this.offset.y - rect.y) / this.current.zoom
+        x: ((e.x - correction.x - rect.x) / this.current.zoom) + highlightOffset,
+        y: ((e.y - correction.y - rect.y) / this.current.zoom) + highlightOffset
       },
       height: 15,
       width: 15,
@@ -412,86 +561,35 @@ export default class Workspace extends Base {
       }],
       completed: false
     }
-    this.component.out.push(line);
-    this.createLineSVG(line);
+    this.component.out.push(this.line);
+    this.createLineSVG(this.line, e);
   }
-  
-  createLineSVG(line) {
+
+  createLineSVG(line, e) {
     this.svg = this.ce({
       namespace: 'http://www.w3.org/2000/svg',
       tag: 'svg'
     }, {
       id: line.id,
+      class: 'line-' + this.component.id,
+      ['data-direction']: line.direction,
       style: 'position: absolute; z-index: -2; cursor: crosshair;' +
         `transform: translate(${line.position.x}px, ${line.position.y}px);`,
       width: line.width,
       height: line.height
-    }, this.ce({
-      namespace: 'http://www.w3.org/2000/svg',
-      tag: 'path'
-    }, {
-      id: 'path-1',
-      nativeStyle: {
-        strokeWidth: 3,
-        opacity: 1,
-        fill: 'none'
-      }
-    }));
-  }
-
-  drawLine(e) {
-    this.line;
-    if (Object.keys(this.offset).length) {
-      const displaceX = (e.x - this.offset.x) / this.current.zoom;
-      const displaceY = (e.y - this.offset.y) / this.current.zoom;
-      let points;
-      const currDirection = this.element.dataset.direction;
-      switch (currDirection) {
-        case 'top':
-          this.svg.style.top = `${displaceY}`;
-          points = `M 10 ${(displaceY*-1)} l 0 ${displaceY-1*this.current.zoom}`;
-          break;
-        case 'right':
-          points = `M 0 10 l ${displaceX+1*this.current.zoom} 0`;
-          break;
-        case 'bottom':
-          points = `M 10 0 l 0 ${displaceY+1*this.current.zoom}`;
-          break;
-        case 'left':
-          this.svg.style.left = `${displaceX}`;
-          points = `M ${(displaceX*-1)} 10 l ${displaceX-1*this.current.zoom} 0`;
-          break;
-        default:
-          break;
-      }
-      this.svg.setAttribute('height', displaceY > 0 ? displaceY + 10 : (displaceY * -1) + 10);
-      this.svg.setAttribute('width', displaceX > 0 ? displaceX + 10 : (displaceX * -1) + 10);
-      const newPath = this.ce(this.svg.getElementsByTagName('path')[0], {
-        stroke: 'orangered',
-        ['stroke-dasharray']: '5,5',
-        d: points,
-      });
-      this.line = {
-        x: 60,
-        y: 5
-      }
-      this.svg.appendChild(newPath);
-      this.workspace.appendChild(this.svg);
-    }
-  }
-
-  endLineDraw(e) {
-    this.offset = {};
-    if (this.highlighted && this.highlighted.id.indexOf(this.element.id) < 0) {
-      const newPath = this.ce(this.svg.getElementsByTagName('path')[0], {
-        ['stroke-dasharray']: ''
-      });
-      this.svg.appendChild(newPath);
-      const topArrow = `M 5 50 L 10 32.5  L 15 50 z`;
-      const rightArrow = `M 50 5 L 62.5 10  L 50 15 z`;
-      const bottomArrow = `M 5 50 L 10 62.5  L 15 50 z`;
-      const leftArrow = `M50 5 L 37.5 10  L 50 15 z`;
-      const arrow = this.ce({
+    }, [
+      this.ce({
+        namespace: 'http://www.w3.org/2000/svg',
+        tag: 'path'
+      }, {
+        id: 'path',
+        nativeStyle: {
+          strokeWidth: 3,
+          opacity: 1,
+          fill: 'none'
+        }
+      }),
+      this.ce({
         namespace: 'http://www.w3.org/2000/svg',
         tag: 'path'
       }, {
@@ -501,10 +599,78 @@ export default class Workspace extends Base {
           opacity: 1,
           stroke: 'black'
         },
-        d: bottomArrow,
+      })
+    ]);
+    this.drawLine(line, e);
+  }
+
+  trackLinePoints(e) {
+    if (Object.keys(this.offset).length) {
+      const displaceX = (e.x - this.offset.x) / this.current.zoom;
+      const displaceY = (e.y - this.offset.y) / this.current.zoom;
+      this.line.width = displaceX > 0 ? displaceX + 10 : (displaceX - 10) * -1;
+      this.line.height = displaceY > 0 ? displaceY + 10 : (displaceY - 10) * -1;
+      this.line.points[0].x = displaceX;
+      this.line.points[0].y = displaceY;
+    }
+    this.drawLine(this.line, e);
+  }
+
+  drawLine(line, e) {
+    this.svg.setAttribute('width', line.width);
+    this.svg.setAttribute('height', line.height);
+    let points;
+    let arrowPath;
+    const {
+      x,
+      y
+    } = line.points[0];
+    switch (line.direction) {
+      case 'top':
+        this.svg.style.top = `${y}`;
+        points = `M 6 ${(y*-1)} L 6 0`;
+        arrowPath = `M 2.5 ${y*-1/2} L 6.25 ${(y*-1/2) - 7.5}  L 10 ${y*-1/2} z`;
+        break;
+      case 'right':
+        points = `M 0 6 L ${x} 6`;
+        arrowPath = `M ${x/2} 2.5 L ${(x/2) + 7.5 } 6.25  L ${x/2} 10 z`;
+        break;
+      case 'bottom':
+        points = `M 6 0 L 6 ${y}`;
+        arrowPath = `M 2.5 ${y/2} L 6.25 ${(y/2) + 7.5}  L 10 ${y/2} z`;
+        break;
+      case 'left':
+        this.svg.style.left = `${x}`;
+        points = `M ${(x*-1)} 6 L 0 6`;
+        arrowPath = `M ${x*-1/2} 2.5 L ${(x*-1/2) - 7.5} 6.25  L ${x*-1/2} 10 z`;
+        break;
+      default:
+        break;
+    }
+    this.ce(this.svg.getElementById('path'), {
+      stroke: 'orangered',
+      ['stroke-dasharray']: e ? '5.5' : '',
+      d: points,
+    });
+    this.ce(this.svg.getElementById('arrow'), {
+      d: arrowPath,
+    });
+    if (e) {
+      this.workspace.appendChild(this.svg);
+    } else {
+    // TODO: remove after svg render
+      console.log('e', this.svg, this.line);
+      this.svg = null;
+      this.line = null;
+    }
+  }
+
+  endLineDraw(e) {
+    this.offset = {};
+    if (this.highlighted && this.highlighted.id.indexOf(this.element.id) < 0) {
+      this.ce(this.svg.getElementById('path'), {
+        ['stroke-dasharray']: ''
       });
-      console.log(arrow);
-      this.svg.appendChild(arrow);
       this.svg.style.cursor = 'default';
       e.target.parentElement.classList.remove('temp');
     } else {
@@ -514,7 +680,16 @@ export default class Workspace extends Base {
         this.element = null;
       }
     }
+    this.line.destination = this.component.id;
+    this.component.in.push({
+      direction: this.highlighted.dataset.direction,
+      source: this.source.id
+    });
+    this.source = null;
     this.svg = null;
+    this.line = null;
+    // TODO: remove after fetch
+    console.log('flows', this.flows);
   }
 
   create() {
