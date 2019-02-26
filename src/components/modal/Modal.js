@@ -30,7 +30,6 @@ export default class Modal extends Base {
       "tabSize": 2
     });
     editor.getSession().on('change', function() {
-      console.log(">>>>>>>>>>>>>>", editor.getSession().getValue());
     });
   }
   
@@ -149,7 +148,6 @@ export default class Modal extends Base {
 
   updateLabel(e) {
     var componentId = this.component.id;
-    // console.log('log', e.target, document.getElementById(componentId));
     var child = document.getElementById(componentId).children[0].children[0];
     child.innerHTML = e.target.value;
     var event = new CustomEvent("updateLabel", 	{

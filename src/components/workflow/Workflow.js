@@ -4,12 +4,15 @@ import Palette from '../palette/Palette';
 import './workflow.css';
 
 export default class Workflow extends Base {
-  constructor() {
+
+  constructor(elem, schema) {
     super();
+    this.element = elem;
+    this.schema = schema;
   }
 
   create() {
-    return this.ce('div', {
+    this.element.appendChild(this.ce('div', {
       id: 'workflow',
       style: 'background: #fff;'
     }, [
@@ -17,7 +20,7 @@ export default class Workflow extends Base {
       this.ce('div', {
         id: 'workspace-container',
         style: 'width: 100%; height: 100%; background: #00000033; overflow: hidden;'
-      }, new Workspace().create())
-    ]);
+      }, new Workspace(this.schema).create())
+    ]));
   }
 }

@@ -1,7 +1,6 @@
 import Base from '../base/Base';
 import Modal from '../modal/Modal';
 import './workspace.css';
-
 export default class Workspace extends Base {
   constructor() {
     super();
@@ -208,13 +207,10 @@ export default class Workspace extends Base {
         "type": "event"
       }
     ];
-    this.flows = [];
     document.addEventListener("updateLabel", this.customEvent.bind(this), false);
   }
 
   customEvent(e) {
-    console.log(e, this.flows)
-    
     var FilterComponent = this.flows.find(function(flow){
       return flow.id === e.detail.componentId
     })
@@ -223,8 +219,17 @@ export default class Workspace extends Base {
     this.flows[index] = FilterComponent;
   }
 
-  zoom(e) {
-    var delta = e.wheelDelta || -e.detail;
+  zoom(e, key) {
+    var delta;
+    if (key === 'zoomIn') {
+      delta = 120;
+      this.workspace.style.transformOrigin = '50% 50% 0';
+    } else if (key === 'zoomOut') {
+      delta = -120
+    } else {
+      delta = (e.wheelDelta || -e.detail)
+      this.workspace.style.transformOrigin = '0 0 0';
+    }
     this.scrollTop += (delta < 0 ? 1 : -1) * 30;
     e.preventDefault();
     var oz = this.current.zoom,
@@ -320,6 +325,7 @@ export default class Workspace extends Base {
       id: comp.id,
       style: wrapperStyle,
       on: {
+        contextmenu: this.contextmenu.bind(this),
         dblclick: this.openModal.bind(this),
         mouseover: this.showNodes.bind(this),
         mouseleave: this.hideNodes.bind(this),
@@ -336,7 +342,7 @@ export default class Workspace extends Base {
   }
 
   openModal(e) {
-    const componentId = e.target.parentElement.id;
+    const componentId = e ? e.target.parentElement.id : this.currentEventId;
     if (componentId.indexOf('comp') !== 0) {
       return;
     }
@@ -677,7 +683,7 @@ export default class Workspace extends Base {
     if (e) {
       this.workspace.appendChild(this.svg);
     } else {
-    // TODO: remove after svg render
+      // TODO: remove after svg render
       console.log('e', this.svg, this.line);
       this.svg = null;
       this.line = null;
@@ -715,6 +721,7 @@ export default class Workspace extends Base {
     this.workspace = this.ce('div', {
       id: 'workspace',
       on: {
+        click:this.closeOptions.bind(this),
         wheel: this.zoom.bind(this),
         mousedown: this.mouseDown.bind(this),
         mousemove: this.mouseMove.bind(this),
@@ -723,6 +730,130 @@ export default class Workspace extends Base {
         dragover: this.allowDrop.bind(this),
       }
     }, this.flows.map((component) => this.placeComponent(component)));
-    return this.workspace;
+    return [this.workspace, this.createOptions()];
+  }
+
+  // Create options for zoomin, zoomout and reset screen size.
+  createOptions() {
+    const options = [this.ce('div', {
+      style: 'position: absolute; top: 15px; right: 35px; width: 25px; height: 25px;',
+    }, this.ce('button', {
+      keys: {
+        innerHTML: "&#8635"
+      },
+      on: {
+        click: this.resetScreen.bind(this)
+      }
+    })), this.ce('div', {
+      style: 'position: absolute; top: 45px; right: 15px; width: 25px; height: 25px;',
+    }, this.ce('button', {
+      keys: {
+        innerHTML: "&#8853"
+      },
+      on: {
+        click: (e) => this.zoom(e, "zoomIn")
+      }
+    })), this.ce('div', {
+      style: 'position: absolute; top: 45px; right: 50px; width: 25px; height: 25px;',
+    }, this.ce('button', {
+      keys: {
+        innerHTML: "&#8861"
+      },
+      on: {
+        click: (e) => this.zoom(e, "zoomOut")
+      }
+    }))]
+    return options;
+  }
+
+  // Reset screen size to default zoom.
+  resetScreen(e) {
+    var screen = document.getElementById('workspace')
+    if (screen) {
+      screen.setAttribute('style', '');
+    }
+    this.current = {
+      x: 0,
+      y: 0,
+      zoom: 1
+    }
+  }
+
+  // Provide options for deleting and editing the components
+  contextmenu(e) {
+    e.preventDefault();
+    const componentId = e.target.parentElement.id;
+    this.currentEventId = componentId;
+    if (this.currentEventId !== 'workspace') {
+      let listItems = [];
+      if (componentId.search("line") === -1) {
+        listItems.push(this.ce('li', {
+            on: {
+              click: this.deleteComponent.bind(this)
+            },
+            keys: {
+              innerHTML: "Delete"
+            }
+          }),
+          this.ce('li', {
+            on: {
+              click: this.editComponent.bind(this)
+            },
+            keys: {
+              innerHTML: "Edit"
+            }
+          }))
+      } else {
+        listItems.push(this.ce('li', {
+          on: {
+            click: this.deleteComponent.bind(this)
+          },
+          keys: {
+            innerHTML: "Delete"
+          }
+        }))
+      }
+      const deleteItem = document.getElementById('menuOptions');
+      if (deleteItem) {
+        deleteItem.remove();
+      }
+      var actionComponent = this.ce('div', {
+        id: 'menuOptions',
+        style: `transform: translate(${e.x}px, ${e.y}px)`
+      }, this.ce('ul', {
+        id: 'items'
+      }, listItems))
+      this.workspace.appendChild(actionComponent);
+    }
+  }
+
+  // Delete the component
+  deleteComponent(e) {
+    const event = document.getElementById(this.currentEventId);
+    if (event !== 'workspace') {
+      event.remove();
+      const deleteItem = document.getElementById('menuOptions');
+      if (deleteItem) {
+        deleteItem.remove();
+      }
+      this.flows.map((component,index) =>{
+      if(component.id === this.currentEventId) {
+        this.flows.splice(index, 1)
+      }
+      })
+    }
+  }
+
+  // Close the menu options while clicking other than components.
+  closeOptions(e){
+    var menu = document.getElementById('menuOptions');
+    if(menu){
+    menu.remove();
+   }
+ }
+  
+  // Open the component Modal
+  editComponent(e) {
+    this.openModal();
   }
 }
