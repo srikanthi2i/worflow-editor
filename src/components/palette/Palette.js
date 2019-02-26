@@ -6,6 +6,12 @@ export default class Palette extends Base {
     super();
     this.palette;
     this.dragElem;
+    this.zoom = 1;
+    document.addEventListener("updateZoom", this.customZoom.bind(this), false);
+  }
+
+  customZoom(e) {
+    this.zoom = e.detail.zoom;
   }
 
   dragStart(e) {
@@ -21,11 +27,11 @@ export default class Palette extends Base {
       }
     });
     if (e.target.id === 'event') {
-      dropStyle += `border-radius: 50%; transform: scale(1);`;
+      dropStyle += `border-radius: 50%; transform: scale(${this.zoom});`;
     } else if (e.target.id === 'action') {
-      dropStyle += `height: 50px; transform: scale(1);`;
+      dropStyle += `height: 50px; transform: scale(${this.zoom});`;
     } else {
-      dropStyle += `transform: rotate(45deg) scale(1);`;
+      dropStyle += `transform: rotate(45deg) scale(${this.zoom});`;
     }
     this.ce(this.dragElem.getElementsByClassName("drag-item")[0], {
       style: dropStyle,
