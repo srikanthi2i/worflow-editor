@@ -4,6 +4,15 @@ body {
   padding: 0;
 }
 
+button {
+  background-color: #ffffff;
+  border: none;
+  color: black;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
 label {
   width: 30%;
   display: inline-block;
