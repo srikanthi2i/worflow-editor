@@ -208,6 +208,19 @@ export default class Workspace extends Base {
         "type": "event"
       }
     ];
+    this.flows = [];
+    document.addEventListener("updateLabel", this.customEvent.bind(this), false);
+  }
+
+  customEvent(e) {
+    console.log(e, this.flows)
+    
+    var FilterComponent = this.flows.find(function(flow){
+      return flow.id === e.detail.componentId
+    })
+    var index = this.flows.indexOf(FilterComponent);
+    FilterComponent.label = e.detail.value;
+    this.flows[index] = FilterComponent;
   }
 
   zoom(e) {
@@ -234,6 +247,12 @@ export default class Workspace extends Base {
     this.current.x = cx;
     this.current.y = cy;
     // make sure we scale before translate!
+    var event = new CustomEvent("updateZoom", 	{
+      detail: {
+        zoom: nz
+      }
+    });
+    document.dispatchEvent(event);
     this.workspace.style.transform = `translate(${cx}px, ${cy}px) scale(${nz})`;
   };
 
