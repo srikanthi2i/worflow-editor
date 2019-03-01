@@ -19,7 +19,7 @@ export default class Workflow extends Base {
       new Palette().create(),
       this.ce('div', {
         id: 'workspace-container',
-        style: 'width: 100%; height: 100%; background: #00000033; overflow: hidden;'
+        style: 'width: 100%; height: 100%; background: #00000033; overflow: hidden; position: relative;'
       }, new Workspace(this.schema).create())
     ]));
   }

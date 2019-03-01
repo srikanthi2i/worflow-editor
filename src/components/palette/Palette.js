@@ -7,10 +7,10 @@ export default class Palette extends Base {
     this.palette;
     this.dragElem;
     this.zoom = 1;
-    document.addEventListener("updateZoom", this.customZoom.bind(this), false);
+    document.addEventListener("onZoom", this.onZoom.bind(this), false);
   }
 
-  customZoom(e) {
+  onZoom(e) {
     this.zoom = e.detail.zoom;
   }
 
@@ -37,7 +37,7 @@ export default class Palette extends Base {
       style: dropStyle,
     });
     document.getElementById('workflow').appendChild(this.dragElem);
-    e.dataTransfer.setDragImage(this.dragElem, 20, 20);
+    e.dataTransfer.setDragImage(this.dragElem, 50, 25);
   }
 
   dragOver(e) {

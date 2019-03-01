@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto+Slab');
 html,
 body {
   margin: 0;
@@ -6,7 +7,7 @@ body {
 
 button {
   background-color: #ffffff;
-  border: none;
+  border: 1px solid;
   color: black;
   font-size: 16px;
   margin: 4px 2px;
@@ -27,6 +28,11 @@ input[type=text] {
   border-radius: 4px;
   box-sizing: border-box;
   outline: none;
+}
+
+#workflow {
+  font-family: 'Roboto Slab', sans-serif;
+  font-size: 13px;
 }
 
 div #workflow * {

@@ -58,8 +58,13 @@
 
 .field {
   padding: 0.8em;
+  padding-bottom: 0; 
   width: 100%;
   box-sizing: border-box;
+}
+
+label.data {
+  padding-bottom: 0.8em;
 }
 
 #editor {

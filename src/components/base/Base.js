@@ -58,4 +58,12 @@ export default class Base {
       element.appendChild(child);
     }
   }
+
+  getElementById(id) {
+    return document.getElementById(id);
+  }
+
+  getElementsByClass(className) {
+    return document.getElementsByClassName(className);
+  }
 }

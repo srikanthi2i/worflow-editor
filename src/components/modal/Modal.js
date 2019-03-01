@@ -29,10 +29,11 @@ export default class Modal extends Base {
       "minLines": 20,
       "tabSize": 2
     });
-    editor.getSession().on('change', function() {
+    editor.getSession().on('change', function () {
+      console.log(">>>>>>>>>>>>>>", editor.getSession().getValue(), this.component);
     });
   }
-  
+
   open() {
     this.modal = this.ce('div', {
       class: 'modal',
@@ -129,10 +130,10 @@ export default class Modal extends Base {
         this.ce('div', {
           class: 'field'
         }, [this.ce('label', {
-            class: 'data',
-            keys: {
-              innerHTML: 'Data'
-            }
+          class: 'data',
+          keys: {
+            innerHTML: 'Data'
+          }
         }), this.editor])
       ]);
     } else {
@@ -147,13 +148,15 @@ export default class Modal extends Base {
   }
 
   updateLabel(e) {
-    var componentId = this.component.id;
-    var child = document.getElementById(componentId).children[0].children[0];
-    child.innerHTML = e.target.value;
-    var event = new CustomEvent("updateLabel", 	{
+    const value = e.target.value || this.component.type;
+    const child = document.getElementById(this.component.id).children[0].children[0];
+    child.innerHTML = value;
+    this.component.label = value;
+    const event = new CustomEvent("componentUpdate", {
       detail: {
-        componentId,
-        value: e.target.value,
+        component: {
+          ...this.component
+        }
       }
     });
     document.dispatchEvent(event);

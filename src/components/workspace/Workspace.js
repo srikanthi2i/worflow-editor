@@ -1,258 +1,226 @@
 import Base from '../base/Base';
 import Modal from '../modal/Modal';
+import Tools from './Tools';
 import './workspace.css';
 export default class Workspace extends Base {
   constructor() {
     super();
-    this.workspace;
-    this.offset = {};
-    this.config = {
-      event: {
-        width: 100,
-        height: 100,
-      },
-      action: {
-        width: 100,
-        height: 50,
-      },
-      conditional: {
-        width: 100,
-        height: 100,
-      },
-      nodeIn: {
-        width: 15,
-        height: 15,
-      },
-      nodeOut: {
-        width: 15,
-        height: 15,
-      }
-    };
-    this.element;
-    this.component;
     this.current = {
       x: 0,
       y: 0,
       zoom: 1
     }
+    this.workspace;
+    this.offset = {};
+    this.element;
+    this.component;
+    this.line;
+    this.svg;
     this.highlighted;
+    this.menuOptions;
     this.flows = [{
-        "id": "comp-12345",
-        "data": {},
-        "key": "",
-        "label": "Start",
+        "id": "comp-867607",
+        "data": {
+          "formId": "id for purchase order"
+        },
+        "key": "event",
+        "label": "Track PO",
         "out": [{
-          "id": "linecomp-12345-1",
-          "direction": "right",
-          "destination": "comp-063733",
+          "id": "linecomp-867607-0",
+          "direction": "bottom",
+          "destination": "comp-513476",
           "position": {
-            "x": 277,
-            "y": 123
+            "x": 209.5,
+            "y": 157.5
           },
-          "height": 28,
-          "width": 110,
+          "height": 104.5,
+          "width": 19.5,
           "points": [{
-            "x": 100,
-            "y": 18
+            "x": 9.5,
+            "y": 94.5
           }],
           "completed": false
         }],
         "in": [],
         "position": {
-          "x": 184,
-          "y": 80
+          "x": 165,
+          "y": 65
         },
         "type": "event"
       },
       {
-        "id": "comp-063733",
-        "data": {},
-        "key": "action",
-        "label": "Track",
+        "id": "comp-513476",
+        "data": {
+          "rule": "rule for purchased"
+        },
+        "key": "condition",
+        "label": "If Purchased?",
         "out": [{
-          "id": "linecomp-063733-0",
-          "direction": "bottom",
-          "destination": "comp-295841",
+          "id": "linecomp-513476-0",
+          "direction": "right",
+          "destination": "comp-465141",
           "position": {
-            "x": 416.5,
-            "y": 150.5
+            "x": 279,
+            "y": 309.5
           },
-          "height": 111.5,
-          "width": 19.5,
+          "height": 21.5,
+          "width": 116,
           "points": [{
-            "x": 9.5,
-            "y": 101.5
+            "x": 106,
+            "y": 11.5
           }],
+          "action": "yes",
           "completed": false
         }],
         "in": [{
-          "direction": "left",
-          "source": "comp-12345"
-        }],
-        "position": {
-          "x": 373,
-          "y": 108
-        },
-        "type": "action"
-      },
-      {
-        "id": "comp-295841",
-        "data": {},
-        "key": "condition",
-        "label": "Is Passed",
-        "out": [{
-            "id": "linecomp-295841-0",
-            "direction": "right",
-            "destination": "comp-103524",
-            "position": {
-              "x": 483.5,
-              "y": 311.5
-            },
-            "height": 13.5,
-            "width": 139.5,
-            "points": [{
-              "x": 129.5,
-              "y": 3.5
-            }],
-            "completed": false
-          },
-          {
-            "id": "linecomp-295841-2",
-            "direction": "bottom",
-            "destination": "comp-605937",
-            "position": {
-              "x": 413.5,
-              "y": 382.5
-            },
-            "height": 109.5,
-            "width": 22.5,
-            "points": [{
-              "x": 12.5,
-              "y": 99.5
-            }],
-            "completed": false
-          }
-        ],
-        "in": [{
           "direction": "top",
-          "source": "comp-063733"
+          "source": "comp-867607"
         }],
         "position": {
-          "x": 372,
-          "y": 267
+          "x": 165,
+          "y": 265
         },
         "type": "condition"
       },
       {
-        "id": "comp-103524",
-        "data": {},
+        "id": "comp-465141",
+        "data": {
+          "formId": "id for invoice"
+        },
         "key": "action",
-        "label": "Mailed",
+        "label": "Create Invoice",
         "out": [{
-          "id": "linecomp-103524-0",
-          "direction": "right",
-          "destination": "comp-342539",
+          "id": "linecomp-465141-0",
+          "direction": "bottom",
+          "destination": "comp-067317",
           "position": {
-            "x": 703.5,
-            "y": 312
+            "x": 424.5,
+            "y": 333.5
           },
-          "height": 22,
-          "width": 145.5,
+          "height": 92.5,
+          "width": 21.5,
           "points": [{
-            "x": 135.5,
-            "y": 12
+            "x": 11.5,
+            "y": 82.5
           }],
           "completed": false
         }],
         "in": [{
           "direction": "left",
-          "source": "comp-295841"
+          "source": "comp-513476"
         }],
         "position": {
-          "x": 610,
-          "y": 294
+          "x": 380,
+          "y": 290
         },
         "type": "action"
       },
       {
-        "id": "comp-605937",
-        "data": {},
-        "key": "event",
-        "label": "Stop",
-        "out": [],
+        "id": "comp-067317",
+        "data": {
+          "rule": "rule for invoice detail"
+        },
+        "key": "condition",
+        "label": "Is having ID?",
+        "out": [{
+          "id": "linecomp-067317-0",
+          "direction": "right",
+          "destination": "comp-171995",
+          "position": {
+            "x": 492.5,
+            "y": 473.5
+          },
+          "height": 20.5,
+          "width": 142.5,
+          "points": [{
+            "x": 132.5,
+            "y": 10.5
+          }],
+          "action": "yes",
+          "completed": false
+        }],
         "in": [{
           "direction": "top",
-          "source": "comp-295841"
+          "source": "comp-465141"
         }],
         "position": {
-          "x": 371,
-          "y": 473
+          "x": 380,
+          "y": 430
         },
-        "type": "event"
+        "type": "condition"
       },
       {
-        "id": "comp-342539",
-        "data": {},
-        "key": "event",
-        "label": "Stop",
+        "id": "comp-171995",
+        "data": {
+          "formId": "id for invoice-detail"
+        },
+        "key": "action",
+        "label": "Create Invoice-detail",
         "out": [],
         "in": [{
           "direction": "left",
-          "source": "comp-103524"
+          "source": "comp-067317"
         }],
         "position": {
-          "x": 836,
-          "y": 270
+          "x": 620,
+          "y": 455
         },
-        "type": "event"
+        "type": "action"
       }
     ];
-    document.addEventListener("updateLabel", this.customEvent.bind(this), false);
+    document.addEventListener("componentUpdate", this.componentUpdate.bind(this), false);
   }
 
-  customEvent(e) {
-    var FilterComponent = this.flows.find(function(flow){
-      return flow.id === e.detail.componentId
-    })
-    var index = this.flows.indexOf(FilterComponent);
-    FilterComponent.label = e.detail.value;
-    this.flows[index] = FilterComponent;
+  componentUpdate(e) {
+    console.log('flows', this.flows);
   }
 
-  zoom(e, key) {
+  reset(e) {
+    this.current = {
+      x: 0,
+      y: 0,
+      zoom: 1
+    };
+    this.workspace.setAttribute('style', '');
+  }
+
+  zoom(e, action) {
     var delta;
-    if (key === 'zoomIn') {
-      delta = 120;
-      this.workspace.style.transformOrigin = '50% 50% 0';
-    } else if (key === 'zoomOut') {
-      delta = -120
+    const layer = {
+      x: e.layerX,
+      y: e.layerY
+    }
+    if (action) {
+      const rect = this.workspace.getBoundingClientRect();
+      layer.x = (rect.width / this.current.zoom) / 2;
+      layer.y = (rect.height / this.current.zoom) / 2;
+      delta = action === 'zoomIn' ? 120 : -120;
     } else {
-      delta = (e.wheelDelta || -e.detail)
-      this.workspace.style.transformOrigin = '0 0 0';
+      delta = (e.wheelDelta || -e.detail);
     }
     this.scrollTop += (delta < 0 ? 1 : -1) * 30;
     e.preventDefault();
     var oz = this.current.zoom,
-      nz = this.current.zoom * (delta < 0 ? 0.9 : 1.2);
+      nz = this.current.zoom + (delta < 0 ? -0.2 : 0.2);
     if (nz < 1 || nz > 15) {
       return;
     }
     // calculate click at current zoom
-    var ix = (e.layerX - this.current.x) / oz,
-      iy = (e.layerY - this.current.y) / oz,
+    var ix = (layer.x - this.current.x) / oz,
+      iy = (layer.y - this.current.y) / oz,
       // calculate click at new zoom
       nx = ix * nz,
       ny = iy * nz,
       // move to the difference
       // make sure we take mouse pointer offset into account!
-      cx = (ix + (e.layerX - ix) - nx),
-      cy = (iy + (e.layerY - iy) - ny);
+      cx = (ix + (layer.x - ix) - nx),
+      cy = (iy + (layer.y - iy) - ny);
     // update current
     this.current.zoom = nz;
     this.current.x = cx;
     this.current.y = cy;
     // make sure we scale before translate!
-    var event = new CustomEvent("updateZoom", 	{
+    const event = new CustomEvent("onZoom", {
       detail: {
         zoom: nz
       }
@@ -276,11 +244,13 @@ export default class Workspace extends Base {
       out: [],
       in: [],
       position: {
-        x: (e.layerX - (this.current.x + 20)) / this.current.zoom,
-        y: (e.layerY - (this.current.y + 20)) / this.current.zoom
+        x: (e.layerX - (this.current.x + 50)) / this.current.zoom,
+        y: (e.layerY - (this.current.y + 25)) / this.current.zoom
       },
       type: droppedId
     };
+    component.position.x = Math.round(component.position.x / 5) * 5;
+    component.position.y = Math.round(component.position.y / 5) * 5;
     if (component.type === 'condition') {
       component.position.x += 20;
       component.position.y += 20;
@@ -318,20 +288,16 @@ export default class Workspace extends Base {
         }
       })
     ];
-    compChildren.push(this.getAvailableDirections().map((line) => this.addNode(line)));
+    compChildren.push(this.getAvailableDirections(comp).map((line) => this.addNode(line)));
     comp.out.map(line => this.createLineSVG(line));
 
     var wrappedComp = this.ce('div', {
       id: comp.id,
       style: wrapperStyle,
       on: {
-        contextmenu: this.contextmenu.bind(this),
         dblclick: this.openModal.bind(this),
         mouseover: this.showNodes.bind(this),
-        mouseleave: this.hideNodes.bind(this),
-        mousedown: this.mouseDown.bind(this),
-        mousemove: this.mouseMove.bind(this),
-        mouseup: this.mouseEnd.bind(this)
+        mouseleave: this.hideNodes.bind(this)
       }
     }, this.ce('div', {
       class: 'drag-item',
@@ -342,15 +308,11 @@ export default class Workspace extends Base {
   }
 
   openModal(e) {
-    const componentId = e ? e.target.parentElement.id : this.currentEventId;
+    const componentId = e ? e.target.parentElement.id : this.component.id;
     if (componentId.indexOf('comp') !== 0) {
       return;
     }
-    this.flows.forEach((comp) => {
-      if (comp.id === componentId) {
-        this.component = comp;
-      }
-    });
+    this.component = this.getComponentById(this.flows, componentId);
     this.workspace.parentNode.appendChild(new Modal(this.component).open());
   }
 
@@ -360,13 +322,9 @@ export default class Workspace extends Base {
     if (componentId.indexOf('comp') !== 0) {
       return;
     }
-    this.flows.forEach((comp) => {
-      if (comp.id === componentId) {
-        this.component = comp;
-      }
-    });
+    this.tempComp = this.getComponentById(this.flows, componentId);
     let tempDirections = ['top', 'right', 'bottom', 'left'];
-    this.getAvailableDirections().map(direction => {
+    this.getAvailableDirections(this.tempComp).map(direction => {
       tempDirections.splice(tempDirections.indexOf(direction), 1)
     });
     tempDirections.map(direction => {
@@ -374,8 +332,8 @@ export default class Workspace extends Base {
     });
   }
 
-  getAvailableDirections() {
-    const availableDirections = [...this.component.out.map(line => (line.direction)), ...this.component.in.map(line => (line.direction))];
+  getAvailableDirections(comp) {
+    const availableDirections = [...comp.out.map(line => (line.direction)), ...comp.in.map(line => (line.direction))];
     return availableDirections.filter((direction, index) => availableDirections.indexOf(direction) === index);
   }
 
@@ -388,13 +346,14 @@ export default class Workspace extends Base {
     while (tempNodes.length > 0) {
       tempNodes[0].remove();
     }
-    this.component = null;
+    this.tempComp = null;
   }
 
   addNode(direction, isTemp) {
+    const comp = isTemp ? this.tempComp : this.component;
     var nodeStyle =
       'width: 15px; height: 15px; position: absolute; z-index: -1; border-radius: 50%; cursor: crosshair;';
-    const calc = this.component.type === 'condition' ? 0 : 50;
+    const calc = comp.type === 'condition' ? 0 : 50;
     if (direction === 'top') {
       nodeStyle += `top: -8px; left: calc(${calc}% - 8px);`;
     } else if (direction === 'right') {
@@ -403,19 +362,15 @@ export default class Workspace extends Base {
       nodeStyle += `bottom: -8px; right: calc(${calc}% - 8px);`;
     } else {
       if (calc) {
-        nodeStyle += `left: -8px; top: calc(${calc}% - 8px);`;
+        nodeStyle += `left: -8px; bottom: calc(${calc}% - 8px);`;
       }
     }
     var createdNode = this.ce('div', {
-      id: 'node-' + `${this.component.id}-${direction}`,
-      class: 'node-' + `${isTemp ? isTemp+' temp': this.component.id}`,
+      id: `node-${comp.id}-${direction}`,
+      class: 'node-' + `${isTemp ? isTemp+' temp': comp.id}`,
       style: nodeStyle,
-      ['data-direction']: direction,
-      on: {
-        mousedown: this.mouseDown.bind(this),
-        mousemove: this.mouseMove.bind(this),
-        mouseup: this.mouseEnd.bind(this)
-      }
+      ['data-comp']: comp.id,
+      ['data-direction']: direction
     }, this.ce('div', {
       style: 'width: 100%; height: 100%; position: relative; background: blue; border-radius: 50%; cursor: crosshair;',
       on: {
@@ -441,35 +396,26 @@ export default class Workspace extends Base {
 
   mouseDown(e) {
     e.preventDefault();
+    // check mouse click button is left
+    if (e.which !== 1) {
+      return;
+    }
     if (this.svg) {
       this.svg.remove();
       return;
     }
-    if (e.target.parentElement.id.indexOf('comp') === 0) {
-      this.element = e.target.parentElement;
-      this.element.style.cursor = 'grabbing';
-      this.flows.forEach((comp) => {
-        if (comp.id === this.element.id) {
-          this.component = comp;
-        }
-      });
-      this.initCompMove(e);
-      e.stopPropagation();
-    } else if (e.target.parentElement.id.indexOf('node') === 0) {
-      this.element = e.target.parentElement;
-      this.flows.forEach((comp) => {
-        if (this.element.id.indexOf(comp.id) >= 0) {
-          this.component = comp;
-          this.source = comp;
-        }
-      });
-      e.target.parentElement.classList.remove('temp');
-      this.initLineDraw(e);
-      e.stopPropagation();
-    } else {
-      this.element = this.workspace;
+    this.setElemByEvent(e);
+    if (this.element.id.indexOf('workspace') === 0) {
       this.element.style.cursor = 'grabbing';
       this.initWorkspaceMove(e);
+    } else if (this.element.id.indexOf('comp') === 0) {
+      this.element.style.cursor = 'grabbing';
+      this.component = this.getComponentById(this.flows, this.element.id);
+      this.initCompMove(e);
+    } else if (this.element.id.indexOf('node') === 0) {
+      this.component = this.getComponentById(this.flows, this.element.dataset.comp)
+      e.target.parentElement.classList.remove('temp');
+      this.initLineDraw(e);
     }
   }
 
@@ -499,12 +445,15 @@ export default class Workspace extends Base {
     } else if (this.element.id.indexOf('node') === 0) {
       this.endLineDraw(e);
     }
+  }
+
+  clearComponent() {
     this.element = null;
     this.component = null;
   }
 
   initWorkspaceMove(e) {
-    const rect = document.getElementById('workspace').getBoundingClientRect();
+    const rect = this.workspace.getBoundingClientRect();
     const offsetCalc = {
       x: e.offsetX,
       y: e.offsetY
@@ -532,6 +481,7 @@ export default class Workspace extends Base {
     this.offset = {};
     this.element.style.transition = 'transform 0.3s';
     this.element.style.transitionTimingFunction = 'ease-in-out';
+    this.clearComponent();
   }
 
   initCompMove(e) {
@@ -559,10 +509,16 @@ export default class Workspace extends Base {
 
   endCompMove(e) {
     this.offset = {};
+    this.component.position.x = Math.round(this.component.position.x / 5) * 5;
+    this.component.position.y = Math.round(this.component.position.y / 5) * 5;
+    this.element.style.transform =
+      `translate(${this.component.position.x}px, ${this.component.position.y}px) ${this.component.type === 'condition' ? 'rotate(45deg)' : ''}`;
+      this.clearComponent();
+
   }
 
   initLineDraw(e) {
-    const rect = document.getElementById('workspace').getBoundingClientRect();
+    const rect = this.workspace.getBoundingClientRect();
     const correction = {
       x: (e.offsetX * 1.5) * this.current.zoom,
       y: (e.offsetY * 1.5) * this.current.zoom
@@ -586,7 +542,6 @@ export default class Workspace extends Base {
       }],
       completed: false
     }
-    this.component.out.push(this.line);
     this.createLineSVG(this.line, e);
   }
 
@@ -680,11 +635,8 @@ export default class Workspace extends Base {
     this.ce(this.svg.getElementById('arrow'), {
       d: arrowPath,
     });
-    if (e) {
-      this.workspace.appendChild(this.svg);
-    } else {
-      // TODO: remove after svg render
-      console.log('e', this.svg, this.line);
+    this.ac(this.workspace, this.svg);
+    if (!e) {
       this.svg = null;
       this.line = null;
     }
@@ -692,36 +644,57 @@ export default class Workspace extends Base {
 
   endLineDraw(e) {
     this.offset = {};
-    if (this.highlighted && this.highlighted.id.indexOf(this.element.id) < 0) {
+    const destination = this.highlighted && this.highlighted.dataset;
+    if (destination && destination.comp !== this.component.id) {
       this.ce(this.svg.getElementById('path'), {
         ['stroke-dasharray']: ''
       });
       this.svg.style.cursor = 'default';
       e.target.parentElement.classList.remove('temp');
+      this.line.destination = destination.comp;
+      this.component.out.push(this.line);
+      this.getComponentById(this.flows, destination.comp).in.push({
+        direction: destination.direction,
+        source: this.component.id
+      });
     } else {
       this.svg.remove();
-      if (this.element.children.length < 2) {
+      if (this.workspace.getElementsByClassName(`line-${this.component.id}`).length < 1) {
         this.element.remove();
         this.element = null;
       }
     }
-    this.line.destination = this.component.id;
-    this.component.in.push({
-      direction: this.highlighted.dataset.direction,
-      source: this.source.id
-    });
-    this.source = null;
+    this.clearComponent();
     this.svg = null;
     this.line = null;
     // TODO: remove after fetch
-    console.log('flows', this.flows);
+  }
+
+  getComponentById(comps, id) {
+    return comps.find(comp => {
+      return comp.id === id;
+    });
+  }
+
+  setElemByEvent(e) {
+    const rootElem = e.target.parentElement;
+    if (rootElem.id.indexOf('comp') === 0) {
+      this.element = rootElem;
+    } else if (rootElem.id.indexOf('node') === 0) {
+      this.element = rootElem;
+    } else if (rootElem.id.indexOf('line') === 0) {
+      this.element = rootElem;
+    } else {
+      this.element = this.workspace;
+    }
   }
 
   create() {
     this.workspace = this.ce('div', {
       id: 'workspace',
       on: {
-        click:this.closeOptions.bind(this),
+        contextmenu: this.openMenuOptions.bind(this),
+        click: this.closeMenuOptions.bind(this),
         wheel: this.zoom.bind(this),
         mousedown: this.mouseDown.bind(this),
         mousemove: this.mouseMove.bind(this),
@@ -729,131 +702,88 @@ export default class Workspace extends Base {
         drop: this.drop.bind(this),
         dragover: this.allowDrop.bind(this),
       }
-    }, this.flows.map((component) => this.placeComponent(component)));
-    return [this.workspace, this.createOptions()];
+    });
+    this.renderComponents(this.flows);
+    return [this.workspace, new Tools({
+      zoom: this.zoom.bind(this),
+      reset: this.reset.bind(this)
+    }).create()];
   }
 
-  // Create options for zoomin, zoomout and reset screen size.
-  createOptions() {
-    const options = [this.ce('div', {
-      style: 'position: absolute; top: 15px; right: 35px; width: 25px; height: 25px;',
-    }, this.ce('button', {
-      keys: {
-        innerHTML: "&#8635"
-      },
-      on: {
-        click: this.resetScreen.bind(this)
-      }
-    })), this.ce('div', {
-      style: 'position: absolute; top: 45px; right: 15px; width: 25px; height: 25px;',
-    }, this.ce('button', {
-      keys: {
-        innerHTML: "&#8853"
-      },
-      on: {
-        click: (e) => this.zoom(e, "zoomIn")
-      }
-    })), this.ce('div', {
-      style: 'position: absolute; top: 45px; right: 50px; width: 25px; height: 25px;',
-    }, this.ce('button', {
-      keys: {
-        innerHTML: "&#8861"
-      },
-      on: {
-        click: (e) => this.zoom(e, "zoomOut")
-      }
-    }))]
-    return options;
-  }
-
-  // Reset screen size to default zoom.
-  resetScreen(e) {
-    var screen = document.getElementById('workspace')
-    if (screen) {
-      screen.setAttribute('style', '');
-    }
-    this.current = {
-      x: 0,
-      y: 0,
-      zoom: 1
-    }
+  renderComponents(flows) {
+    this.workspace.innerHTML = '';
+    this.ac(this.workspace, flows.map((component) => this.placeComponent(component)));
   }
 
   // Provide options for deleting and editing the components
-  contextmenu(e) {
+  openMenuOptions(e) {
     e.preventDefault();
-    const componentId = e.target.parentElement.id;
-    this.currentEventId = componentId;
-    if (this.currentEventId !== 'workspace') {
-      let listItems = [];
-      if (componentId.search("line") === -1) {
-        listItems.push(this.ce('li', {
-            on: {
-              click: this.deleteComponent.bind(this)
-            },
-            keys: {
-              innerHTML: "Delete"
-            }
-          }),
-          this.ce('li', {
-            on: {
-              click: this.editComponent.bind(this)
-            },
-            keys: {
-              innerHTML: "Edit"
-            }
-          }))
-      } else {
-        listItems.push(this.ce('li', {
-          on: {
-            click: this.deleteComponent.bind(this)
-          },
-          keys: {
-            innerHTML: "Delete"
-          }
-        }))
-      }
-      const deleteItem = document.getElementById('menuOptions');
-      if (deleteItem) {
-        deleteItem.remove();
-      }
-      var actionComponent = this.ce('div', {
-        id: 'menuOptions',
-        style: `transform: translate(${e.x}px, ${e.y}px)`
-      }, this.ce('ul', {
-        id: 'items'
-      }, listItems))
-      this.workspace.appendChild(actionComponent);
+    this.closeMenuOptions();
+    this.setElemByEvent(e);
+    if (this.element.id.indexOf('line') === 0) {
+      //
+    } else if (this.element.id.indexOf('comp') === 0) {
+      this.component = this.getComponentById(this.flows, this.element.id);
+    } else {
+      return;
     }
+    let menuItems = [];
+    const deleteMenu = () => (this.ce('li', {
+      on: {
+        click: this.deleteMenu.bind(this)
+      },
+      keys: {
+        innerHTML: "Delete"
+      }
+    }));
+    const editMenu = () => (this.ce('li', {
+      on: {
+        click: this.editMenu.bind(this)
+      },
+      keys: {
+        innerHTML: "Edit"
+      }
+    }));
+    menuItems.push(deleteMenu().bind(this));
+    console.log('this comp', this.component);
+    this.component.id.indexOf('line') === -1 && menuItems.push(editMenu().bind(this));
+    this.menuOptions = this.ce('div', {
+      id: 'menuOptions',
+      style: `transform: translate(${e.x}px, ${e.y}px)`
+    }, this.ce('ul', {
+      id: 'items'
+    }, menuItems));
+    this.workspace.appendChild(this.menuOptions);
   }
 
   // Delete the component
-  deleteComponent(e) {
-    const event = document.getElementById(this.currentEventId);
-    if (event !== 'workspace') {
-      event.remove();
-      const deleteItem = document.getElementById('menuOptions');
-      if (deleteItem) {
-        deleteItem.remove();
-      }
-      this.flows.map((component,index) =>{
-      if(component.id === this.currentEventId) {
-        this.flows.splice(index, 1)
-      }
-      })
+  deleteMenu(e) {
+    console.log('this', this.component);
+    this.closeMenuOptions();
+    if (this.line) {
+      this.getElementById(this.line.id).remove();
+      const source = this.getComponentById(this.flows, this.component.id).out;
+      source.splice(source.indexOf(this.line), 1);
+      const destination = this.getComponentById(this.flows, this.line.destination).in;
+      destination.find((dest, index) => {
+        if (dest.source === source.id) {
+          destination.splice(index, 1);
+        }
+      });
+    } else {
+      this.getElementById(this.component.id).remove();
+      this.flows.splice(this.flows.indexOf(this.component), 1);
     }
   }
 
-  // Close the menu options while clicking other than components.
-  closeOptions(e){
-    var menu = document.getElementById('menuOptions');
-    if(menu){
-    menu.remove();
-   }
- }
-  
   // Open the component Modal
-  editComponent(e) {
+  editMenu(e) {
+    this.closeMenuOptions();
     this.openModal();
+  }
+
+  // Close the menu options while clicking other than components.
+  closeMenuOptions(e) {
+    this.menuOptions && this.menuOptions.remove();
   }
 }
