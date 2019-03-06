@@ -15,7 +15,7 @@ export default class Workspace extends Base {
     this.element;
     this.component;
     this.line;
-    this.svg;
+    this.lineElement;
     this.highlighted;
     this.menuOptions;
     this.flows = [{
@@ -281,6 +281,7 @@ export default class Workspace extends Base {
     }
     var compChildren = [
       this.ce('span', {
+        id: 'label-' + `${this.component.id}`,
         style: 'text-transform: capitalize;' +
           `${comp.type === 'condition' ? 'transform: rotate(-45deg)': ''}`,
         keys: {
@@ -289,7 +290,7 @@ export default class Workspace extends Base {
       })
     ];
     compChildren.push(this.getAvailableDirections(comp).map((line) => this.addNode(line)));
-    comp.out.map(line => this.createLineSVG(line));
+    comp.out.map(line => this.createLineGroup(line));
 
     var wrappedComp = this.ce('div', {
       id: comp.id,
@@ -323,6 +324,13 @@ export default class Workspace extends Base {
       return;
     }
     this.tempComp = this.getComponentById(this.flows, componentId);
+    if (this.tempComp.type === 'condition') {
+      if (!(this.lineElement && this.line) && this.tempComp.out && this.tempComp.out.length >= 2) {
+        return;
+      } else if (this.lineElement && this.line && this.tempComp.in.length >= 1) {
+        return;
+      }
+    }
     let tempDirections = ['top', 'right', 'bottom', 'left'];
     this.getAvailableDirections(this.tempComp).map(direction => {
       tempDirections.splice(tempDirections.indexOf(direction), 1)
@@ -361,9 +369,7 @@ export default class Workspace extends Base {
     } else if (direction === 'bottom') {
       nodeStyle += `bottom: -8px; right: calc(${calc}% - 8px);`;
     } else {
-      if (calc) {
-        nodeStyle += `left: -8px; bottom: calc(${calc}% - 8px);`;
-      }
+      nodeStyle += `left: -8px; bottom: calc(${calc}% - 8px);`;
     }
     var createdNode = this.ce('div', {
       id: `node-${comp.id}-${direction}`,
@@ -379,6 +385,44 @@ export default class Workspace extends Base {
       }
     }));
     return createdNode;
+  }
+
+  addConditionLabel(direction, isTemp) {
+    if (!this.component) {
+      return this.ce('span');
+    }
+    const labelText = this.component.out.length === 0 ? 'Yes': 'No';
+    this.line.condition = labelText;
+    var conditionStyle =
+      'width: 15px; height: 15px; position: absolute; cursor: default;';
+    let labelTransform;
+    if (direction === 'top') {
+      labelTransform = 'translate(-40px, -10px)';
+    } else if (direction === 'right') {
+      labelTransform = 'translate(5px, -40px)';
+    } else if (direction === 'bottom') {
+      labelTransform = 'translate(25px, -10px)';
+    } else {
+      labelTransform = 'translate(-40px, -5px)';
+    }
+    labelTransform += ' rotate(-45deg)'
+    var createdLabel = this.ce('div', {
+      id: 'condition-' + `${this.component.id}-${direction}`,
+      class: 'condition-' + `${isTemp ? isTemp+' temp': this.component.id}`,
+      style: conditionStyle,
+      ['data-direction']: direction,
+      nativeStyle: {
+        'font-size': 'inherit',
+        fill: 'black',
+        stroke: 'none',
+        'text-anchor': 'middle',
+        transform: labelTransform
+      },
+      keys: {
+        innerHTML: labelText
+      }
+    });
+    return createdLabel;
   }
 
   highlight(e) {
@@ -400,8 +444,12 @@ export default class Workspace extends Base {
     if (e.which !== 1) {
       return;
     }
-    if (this.svg) {
-      this.svg.remove();
+    if (this.lineElement) {
+      this.lineElement.remove();
+      return;
+    }
+    if (e.target.id.indexOf('condition') === 0) {
+      e.stopPropagation();
       return;
     }
     this.setElemByEvent(e);
@@ -409,8 +457,17 @@ export default class Workspace extends Base {
       this.element.style.cursor = 'grabbing';
       this.initWorkspaceMove(e);
     } else if (this.element.id.indexOf('comp') === 0) {
+      for (let i = 0; i < this.flows.length; i++) {
+        if (this.flows[i].id === this.element.id) {
+          if (this.flows[i].in.length || this.flows[i].out.length) {
+            this.clearComponent();
+            return;
+          }
+          this.component = this.flows[i];
+          break;
+        }
+      }
       this.element.style.cursor = 'grabbing';
-      this.component = this.getComponentById(this.flows, this.element.id);
       this.initCompMove(e);
     } else if (this.element.id.indexOf('node') === 0) {
       this.component = this.getComponentById(this.flows, this.element.dataset.comp)
@@ -513,7 +570,7 @@ export default class Workspace extends Base {
     this.component.position.y = Math.round(this.component.position.y / 5) * 5;
     this.element.style.transform =
       `translate(${this.component.position.x}px, ${this.component.position.y}px) ${this.component.type === 'condition' ? 'rotate(45deg)' : ''}`;
-      this.clearComponent();
+    this.clearComponent();
 
   }
 
@@ -534,29 +591,31 @@ export default class Workspace extends Base {
         x: ((e.x - correction.x - rect.x) / this.current.zoom) + highlightOffset,
         y: ((e.y - correction.y - rect.y) / this.current.zoom) + highlightOffset
       },
-      height: 15,
-      width: 15,
       points: [{
         x: 0,
         y: 0
       }],
       completed: false
     }
-    this.createLineSVG(this.line, e);
+    if (this.component.type === 'condition') {
+      this.highlighted.appendChild(this.addConditionLabel(this.line.direction, false));
+    }
+    this.prevPoint = {
+      ...this.line.position,
+      modified: this.line.direction === 'top' || this.line.direction === 'bottom' ? 'vertical' : 'horizontal'
+    };
+    this.createLineGroup(this.line, e);
   }
 
-  createLineSVG(line, e) {
-    this.svg = this.ce({
+  createLineGroup(line, e) {
+    this.lineElement = this.ce({
       namespace: 'http://www.w3.org/2000/svg',
-      tag: 'svg'
+      tag: 'g'
     }, {
       id: line.id,
       class: 'line-' + this.component.id,
       ['data-direction']: line.direction,
-      style: 'position: absolute; z-index: -2; cursor: crosshair;' +
-        `transform: translate(${line.position.x}px, ${line.position.y}px);`,
-      width: line.width,
-      height: line.height
+      style: 'position: absolute; z-index: -2; cursor: crosshair;',
     }, [
       this.ce({
         namespace: 'http://www.w3.org/2000/svg',
@@ -586,70 +645,144 @@ export default class Workspace extends Base {
 
   trackLinePoints(e) {
     if (Object.keys(this.offset).length) {
-      const displaceX = (e.x - this.offset.x) / this.current.zoom;
-      const displaceY = (e.y - this.offset.y) / this.current.zoom;
-      this.line.width = displaceX > 0 ? displaceX + 10 : (displaceX - 10) * -1;
-      this.line.height = displaceY > 0 ? displaceY + 10 : (displaceY - 10) * -1;
-      this.line.points[0].x = displaceX;
-      this.line.points[0].y = displaceY;
+      let displaceX = (e.x - this.offset.x) / this.current.zoom;
+      let displaceY = (e.y - this.offset.y) / this.current.zoom;
+      if (this.prevPoint.x && this.prevPoint.y) {
+        displaceX -= this.prevPoint.x - this.line.position.x;
+        displaceY -= this.prevPoint.y - this.line.position.y;
+      }
+      const currPointIndex = this.line.points.length - 1;
+      let modified = false;
+      const maxLineBreaks = 2;
+      if ((Math.abs(displaceY) > 30)) {
+        if (this.prevPoint.modified === 'horizontal' && currPointIndex < maxLineBreaks) {
+          this.prevPoint = {
+            ...this.line.points[currPointIndex],
+            modified: 'vertical'
+          }
+          modified = true;
+          this.line.points.push({
+            x: this.prevPoint.x,
+            y: this.prevPoint.y + displaceY
+          });
+        } else if (this.prevPoint.modified !== 'horizontal') {
+          this.line.points[currPointIndex].x = this.prevPoint.x;
+          this.line.points[currPointIndex].y = this.prevPoint.y + displaceY;
+        }
+      } else if ((Math.abs(displaceY) < 30) && currPointIndex > 0 &&
+        this.prevPoint.modified === 'vertical') {
+        this.line.points.pop();
+        this.prevPoint = {
+          ...this.line.points[currPointIndex - 1],
+          modified: 'horizontal'
+        }
+        return;
+      }
+      if (((Math.abs(displaceX) > 30)) && !modified) {
+        if (this.prevPoint.modified === 'vertical' && currPointIndex < maxLineBreaks) {
+          this.prevPoint = {
+            ...this.line.points[currPointIndex],
+            modified: 'horizontal'
+          }
+          this.line.points.push({
+            x: this.prevPoint.x + displaceX,
+            y: this.prevPoint.y
+          });
+        } else if (this.prevPoint.modified !== 'vertical') {
+          this.line.points[currPointIndex].x = this.prevPoint.x + displaceX;
+          this.line.points[currPointIndex].y = this.prevPoint.y;
+        }
+      } else if ((Math.abs(displaceX) < 30) && !modified && currPointIndex > 0 &&
+        this.prevPoint.modified === 'horizontal') {
+        this.line.points.pop();
+        this.prevPoint = {
+          ...this.line.points[currPointIndex - 1],
+          modified: 'vertical'
+        }
+        return;
+      }
     }
     this.drawLine(this.line, e);
   }
 
   drawLine(line, e) {
-    this.svg.setAttribute('width', line.width);
-    this.svg.setAttribute('height', line.height);
-    let points;
-    let arrowPath;
+    const {
+      linePath,
+      arrowPath
+    } = this.getPoints(line);
+    this.ce(this.lineElement.querySelector('#path'), {
+      stroke: 'orangered',
+      ['stroke-dasharray']: e ? '5.5' : '',
+      d: linePath,
+    });
+    this.ce(this.lineElement.querySelector('#arrow'), {
+      d: arrowPath,
+    });
+    this.ac(this.svg, this.lineElement);
+    if (!e) {
+      this.lineElement = null;
+      this.line = null;
+    }
+  }
+
+  getPoints(line) {
+    let nx = line.position.x;
+    let ny = line.position.y;
+    let offsetX = 0;
+    let offsetY = 0;
+    let linePath = ``;
+    let arrowPath = ``;
     const {
       x,
       y
     } = line.points[0];
+    if (x === 0 && y === 0) {
+      return {
+        linePath,
+        arrowPath
+      };
+    }
     switch (line.direction) {
       case 'top':
-        this.svg.style.top = `${y}`;
-        points = `M 6 ${(y*-1)} L 6 0`;
-        arrowPath = `M 2.5 ${y*-1/2} L 6.25 ${(y*-1/2) - 7.5}  L 10 ${y*-1/2} z`;
+        offsetX = 6;
+        arrowPath = (`M ${2.5 + nx} ${(y/2) + ny/2} L ${nx + 6.25} ${(y/2) + ny/2 - 7.5} 
+                      L ${nx + 10} ${y/2 + ny/2} z`);
         break;
       case 'right':
-        points = `M 0 6 L ${x} 6`;
-        arrowPath = `M ${x/2} 2.5 L ${(x/2) + 7.5 } 6.25  L ${x/2} 10 z`;
+        offsetY = 6;
+        arrowPath = (`M ${(x/2) + nx/2} ${2.5 + ny} L ${(x/2) + nx/2 + 7.5 } ${6.25 + ny}
+                      L ${(x/2) + nx/2} ${ny + 10} z`);
         break;
       case 'bottom':
-        points = `M 6 0 L 6 ${y}`;
-        arrowPath = `M 2.5 ${y/2} L 6.25 ${(y/2) + 7.5}  L 10 ${y/2} z`;
+        offsetX = 6;
+        arrowPath = (`M ${2.5 + nx} ${(y/2) + ny/2} L ${6.25 + nx} ${(y/2) + ny/2 + 7.5} 
+                      L ${10 + nx} ${(y/2) + ny/2} z`);
         break;
       case 'left':
-        this.svg.style.left = `${x}`;
-        points = `M ${(x*-1)} 6 L 0 6`;
-        arrowPath = `M ${x*-1/2} 2.5 L ${(x*-1/2) - 7.5} 6.25  L ${x*-1/2} 10 z`;
+        offsetY = 6;
+        arrowPath = (`M ${(x/2) + nx/2} ${2.5 + ny} L ${(x/2) + nx/2 - 7.5} ${6.25 + ny}
+                      L ${(x/2) + nx/2} ${10 + ny} z`);
         break;
       default:
         break;
     }
-    this.ce(this.svg.getElementById('path'), {
-      stroke: 'orangered',
-      ['stroke-dasharray']: e ? '5.5' : '',
-      d: points,
-    });
-    this.ce(this.svg.getElementById('arrow'), {
-      d: arrowPath,
-    });
-    this.ac(this.workspace, this.svg);
-    if (!e) {
-      this.svg = null;
-      this.line = null;
-    }
+    linePath = line.points.reduce((acc, point) => {
+      return acc += ` L ${point.x + offsetX} ${point.y + offsetY}`;
+    }, `M ${nx + offsetX} ${ny + offsetY}`);
+    return {
+      linePath,
+      arrowPath
+    };
   }
 
   endLineDraw(e) {
     this.offset = {};
     const destination = this.highlighted && this.highlighted.dataset;
     if (destination && destination.comp !== this.component.id) {
-      this.ce(this.svg.getElementById('path'), {
+      this.ce(this.lineElement.querySelector('#path'), {
         ['stroke-dasharray']: ''
       });
-      this.svg.style.cursor = 'default';
+      this.lineElement.style.cursor = 'default';
       e.target.parentElement.classList.remove('temp');
       this.line.destination = destination.comp;
       this.component.out.push(this.line);
@@ -658,14 +791,14 @@ export default class Workspace extends Base {
         source: this.component.id
       });
     } else {
-      this.svg.remove();
+      this.lineElement.remove();
       if (this.workspace.getElementsByClassName(`line-${this.component.id}`).length < 1) {
         this.element.remove();
         this.element = null;
       }
     }
     this.clearComponent();
-    this.svg = null;
+    this.lineElement = null;
     this.line = null;
     // TODO: remove after fetch
   }
@@ -684,12 +817,24 @@ export default class Workspace extends Base {
       this.element = rootElem;
     } else if (rootElem.id.indexOf('line') === 0) {
       this.element = rootElem;
+    } else if (e.target.id.indexOf('label') === 0) {
+      this.element = e.target.parentElement.parentElement;
     } else {
       this.element = this.workspace;
     }
   }
 
   create() {
+    this.svg = this.ce({
+      namespace: 'http://www.w3.org/2000/svg',
+      tag: 'svg'
+    }, {
+      id: 'allSvg',
+      class: 'svg',
+      style: 'position: absolute; z-index: -2;',
+      width: '100%',
+      height: '100%'
+    });
     this.workspace = this.ce('div', {
       id: 'workspace',
       on: {
@@ -712,7 +857,7 @@ export default class Workspace extends Base {
 
   renderComponents(flows) {
     this.workspace.innerHTML = '';
-    this.ac(this.workspace, flows.map((component) => this.placeComponent(component)));
+    this.ac(this.workspace, [this.svg, flows.map((component) => this.placeComponent(component))]);
   }
 
   // Provide options for deleting and editing the components
@@ -745,7 +890,6 @@ export default class Workspace extends Base {
       }
     }));
     menuItems.push(deleteMenu().bind(this));
-    console.log('this comp', this.component);
     this.component.id.indexOf('line') === -1 && menuItems.push(editMenu().bind(this));
     this.menuOptions = this.ce('div', {
       id: 'menuOptions',
@@ -758,7 +902,6 @@ export default class Workspace extends Base {
 
   // Delete the component
   deleteMenu(e) {
-    console.log('this', this.component);
     this.closeMenuOptions();
     if (this.line) {
       this.getElementById(this.line.id).remove();
