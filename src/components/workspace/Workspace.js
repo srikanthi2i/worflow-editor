@@ -332,6 +332,12 @@ export default class Workspace extends Base {
       }
     }
     let tempDirections = ['top', 'right', 'bottom', 'left'];
+    if (this.lineElement) {
+      const currPointIndex = this.line.points.length - 1;
+      const currentLineDirection = this.getLineDirection(this.line.points[currPointIndex],
+        currPointIndex === 0 ? this.line.position : this.line.points[currPointIndex - 1]);
+      tempDirections = [this.getOppositeDirection(currentLineDirection)];
+    }
     this.getAvailableDirections(this.tempComp).map(direction => {
       tempDirections.splice(tempDirections.indexOf(direction), 1)
     });
@@ -391,7 +397,7 @@ export default class Workspace extends Base {
     if (!this.component) {
       return this.ce('span');
     }
-    const labelText = this.component.out.length === 0 ? 'Yes': 'No';
+    const labelText = this.component.out.length === 0 ? 'Yes' : 'No';
     this.line.condition = labelText;
     var conditionStyle =
       'width: 15px; height: 15px; position: absolute; cursor: default;';
@@ -459,10 +465,6 @@ export default class Workspace extends Base {
     } else if (this.element.id.indexOf('comp') === 0) {
       for (let i = 0; i < this.flows.length; i++) {
         if (this.flows[i].id === this.element.id) {
-          if (this.flows[i].in.length || this.flows[i].out.length) {
-            this.clearComponent();
-            return;
-          }
           this.component = this.flows[i];
           break;
         }
@@ -555,13 +557,180 @@ export default class Workspace extends Base {
       if (validate.x < 0 || validate.y < 0) {
         return;
       }
+      const compOffset = {
+        x: validate.x - this.component.position.x,
+        y: validate.y - this.component.position.y
+      }
       this.component.position = {
         ...validate
       };
-      // TODO:: need to realign drawn lines
+      if (this.component.out.length) {
+        this.component.out.forEach(line => {
+          this.moveLines(line, compOffset, 'source', e);
+        });
+      }
+      if (this.component.in.length) {
+        this.component.in.forEach(comp => {
+          this.flows.forEach(component => {
+            if (component.id === comp.source) {
+              component.out.forEach(line => {
+                if (line.destination === this.component.id) {
+                  this.moveLines(line, compOffset, 'destination', e);
+                }
+              });
+            }
+          });
+        });
+      };
       this.element.style.transform =
         `translate(${validate.x}px, ${validate.y}px) ${this.component.type === 'condition' ? 'rotate(45deg)' : ''}`;
     }
+  }
+
+  moveLines(line, offset, compSide, e) {
+    this.lineElement = document.getElementById(line.id);
+    let {
+      minIndex,
+      maxIndex
+    } = this.getLongestAndShortestIndex([line.position, ...line.points], line.direction);
+    if ((line.points.length === 1) && ((this.isVertical(line.direction) && offset.x) ||
+        (this.isHorizontal(line.direction) && offset.y))) {
+      this.breakLines(line, 3);
+    }
+    const index = (line.direction === 'bottom' && offset.y > 0) ||
+      (line.direction === 'top' && offset.y < 0) ||
+      (line.direction === 'right' && offset.x > 0) ||
+      (line.direction === 'left' && offset.x < 0) ? minIndex : maxIndex;
+    this.handleLineDisplacement(line, compSide, offset, index);
+    if (compSide === 'source') {
+      line.position.x += offset.x;
+      line.position.y += offset.y;
+    }
+    this.drawLine(line);
+  }
+
+  breakLines(line, numberOfLines) {
+    if (numberOfLines === 3) {
+      let midpoint = {};
+      if (this.isVertical(line.direction)) {
+        midpoint.y = (line.position.y + line.points[0].y) / 2;
+      } else {
+        midpoint.x = (line.position.x + line.points[0].x) / 2;
+      }
+      line.points = [{
+        x: midpoint.x || line.position.x,
+        y: midpoint.y || line.position.y
+      }, {
+        x: midpoint.x || line.points[0].x,
+        y: midpoint.y || line.points[0].y
+      }, {
+        x: line.points[0].x,
+        y: line.points[0].y
+      }];
+    } else if (numberOfLines === 2) {
+      line.points = [{
+        x: this.isVertical(line.direction) ? line.position.x : line.points[0].x,
+        y: this.isVertical(line.direction) ? line.points[0].y : line.position.y
+      }, {
+        x: line.points[0].x,
+        y: line.points[0].y
+      }];
+    }
+  }
+
+
+  handleLineDisplacement(line, compSide, offset, index) {
+    for (let i = 0; i < line.points.length; i++) {
+      if (compSide === 'destination') {
+        if (i === 0 && index === 0) {
+          this.isVertical(line.direction) ? line.points[i].y += offset.y : line.points[i].x += offset.x;
+        } else if (i === 0 && index !== 0) {
+          continue;
+        } else if (i === 1 && index !== 0) {
+          this.isVertical(line.direction) ? line.points[i].x += offset.x : line.points[i].y += offset.y;
+        } else {
+          line.points[i].x += offset.x;
+          line.points[i].y += offset.y;
+        }
+      } else {
+        if ((i === 0 && (index !== 0 || line.points.length === 2))) {
+          this.isVertical(line.direction) ? line.points[i].x += offset.x : line.points[i].y += offset.y;
+        } else if (i === line.points.length - 1 || (i === line.points.length - 2 && index !== 0)) {
+          continue;
+        } else if (i === (line.points.length - 2) && index === 0) {
+          this.isVertical(line.direction) ? line.points[i].y += offset.y : line.points[i].x += offset.x;
+        } else {
+          line.points[i].x += offset.x;
+          line.points[i].y += offset.y;
+        }
+      }
+    }
+  }
+
+  getLongestAndShortestIndex(points, direction) {
+    let max = 0;
+    let min = Infinity;
+    let maxIndex, minIndex;
+    for (let i = 1; i < points.length; i++) {
+      if (i % 2) {
+        const distance = this.isVertical(direction) ? Math.abs(points[i].y - points[i - 1].y) :
+          Math.abs(points[i].x - points[i - 1].x);
+        if (distance > max) {
+          max = distance;
+          maxIndex = i - 1;
+        };
+        if (distance < min) {
+          min = distance;
+          minIndex = i - 1;
+        };
+      } else {
+        continue;
+      }
+    }
+    return {
+      minIndex,
+      maxIndex
+    };
+  }
+
+  getOppositeDirection(direction) {
+    if (direction === 'top') {
+      return 'bottom';
+    } else if (direction === 'bottom') {
+      return 'top';
+    } else if (direction === 'left') {
+      return 'right';
+    } else if (direction === 'right') {
+      return 'left';
+    } else {
+      return null;
+    }
+  }
+
+  getLineDirection(start, end) {
+    if (start.x === end.x) {
+      if (start.y < end.y) {
+        return 'top';
+      } else {
+        return 'bottom';
+      }
+    } else if (start.y === end.y) {
+      if (start.x < end.x) {
+        return 'left';
+      } else {
+        return 'right';
+      }
+    } else {
+      return null;
+    }
+  }
+
+  isVertical(direction) {
+    return direction === 'top' || direction === 'bottom';
+  }
+
+  isHorizontal(direction) {
+    return direction === 'left' || direction === 'right';
   }
 
   endCompMove(e) {
@@ -819,8 +988,10 @@ export default class Workspace extends Base {
       this.element = rootElem;
     } else if (e.target.id.indexOf('label') === 0) {
       this.element = e.target.parentElement.parentElement;
-    } else {
+    } else if (rootElem.id.indexOf('workspace') === 0) {
       this.element = this.workspace;
+    } else {
+      return;
     }
   }
 
