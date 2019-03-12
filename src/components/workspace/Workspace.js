@@ -1,6 +1,7 @@
 import Base from '../base/Base';
 import Modal from '../modal/Modal';
 import Tools from './Tools';
+import EventEmitter from '../EventEmitter/EventEmitter';
 import './workspace.css';
 export default class Workspace extends Base {
   constructor() {
@@ -11,6 +12,7 @@ export default class Workspace extends Base {
       zoom: 1
     }
     this.workspace;
+    this.eventEmitter = EventEmitter.getInstance();
     this.offset = {};
     this.element;
     this.component;
@@ -168,11 +170,19 @@ export default class Workspace extends Base {
         "type": "action"
       }
     ];
-    document.addEventListener("componentUpdate", this.componentUpdate.bind(this), false);
+    this.flows = [];
+    this.storage = {};
+    this.eventEmitter.subscribe('componentUpdate', this.componentUpdate.bind(this));
   }
 
+  // Update component label
   componentUpdate(e) {
-    console.log('flows', this.flows);
+    let FilterComponent = this.flows.find(function (flow) {
+      return flow.id === e.detail.componentId;
+    })
+    let index = this.flows.indexOf(FilterComponent);
+    FilterComponent.label = e.detail.value;
+    this.flows[index] = FilterComponent;
   }
 
   reset(e) {
@@ -185,7 +195,7 @@ export default class Workspace extends Base {
   }
 
   zoom(e, action) {
-    var delta;
+    let delta;
     const layer = {
       x: e.layerX,
       y: e.layerY
@@ -200,13 +210,13 @@ export default class Workspace extends Base {
     }
     this.scrollTop += (delta < 0 ? 1 : -1) * 30;
     e.preventDefault();
-    var oz = this.current.zoom,
+    let oz = this.current.zoom,
       nz = this.current.zoom + (delta < 0 ? -0.2 : 0.2);
     if (nz < 1 || nz > 15) {
       return;
     }
     // calculate click at current zoom
-    var ix = (layer.x - this.current.x) / oz,
+    let ix = (layer.x - this.current.x) / oz,
       iy = (layer.y - this.current.y) / oz,
       // calculate click at new zoom
       nx = ix * nz,
@@ -220,12 +230,17 @@ export default class Workspace extends Base {
     this.current.x = cx;
     this.current.y = cy;
     // make sure we scale before translate!
-    const event = new CustomEvent("onZoom", {
-      detail: {
-        zoom: nz
-      }
+    // Add customevent
+    // const event = new CustomEvent("onZoom", {
+    //   detail: {
+    //     zoom: nz
+    //   }
+    // });
+    // document.dispatchEvent(event);
+
+    this.eventEmitter.emit('onZoom', {
+      zoom: nz
     });
-    document.dispatchEvent(event);
     this.workspace.style.transform = `translate(${cx}px, ${cy}px) scale(${nz})`;
   };
 
@@ -234,9 +249,9 @@ export default class Workspace extends Base {
   }
 
   drop(e) {
-    var droppedId = e.dataTransfer.getData('data');
+    let droppedId = e.dataTransfer.getData('data');
     e.preventDefault();
-    var component = {
+    let component = {
       id: this.randomString('comp', 'n'),
       data: {},
       key: droppedId,
@@ -257,17 +272,19 @@ export default class Workspace extends Base {
     }
     this.flows.push(component);
     this.workspace.appendChild(this.placeComponent(component));
-    if (this.modal) {
+    if (this.storage.instance) {
       this.modal.remove();
+      this.storage.instance = null;
     }
-    this.modal = new Modal(component).open()
+    this.storage.instance = new Modal(component);
+    this.modal = this.storage.instance.open();
     this.workspace.parentNode.appendChild(this.modal);
   }
 
   placeComponent(comp) {
     this.component = comp;
-    var wrapperStyle = 'position: absolute; border: #faebd7; box-shadow: 2px 2px 4px #393939;';
-    var compStyle =
+    let wrapperStyle = 'position: absolute; border: #faebd7; box-shadow: 2px 2px 4px #393939;';
+    let compStyle =
       'position: relative; width: 100px; height: 100px; color: black; display: flex; align-items: center; justify-content: center;'
     if (comp.type === 'event') {
       wrapperStyle += `border-radius: 50%; transform: translate(${comp.position.x}px, ${comp.position.y}px)`;
@@ -279,20 +296,22 @@ export default class Workspace extends Base {
       wrapperStyle +=
         `transform: translate(${comp.position.x}px, ${comp.position.y}px) rotate(45deg)`;
     }
-    var compChildren = [
+    let compChildren = [
       this.ce('span', {
         id: 'label-' + `${this.component.id}`,
+        class: "textOverflowEllipsis",
         style: 'text-transform: capitalize;' +
           `${comp.type === 'condition' ? 'transform: rotate(-45deg)': ''}`,
         keys: {
-          innerHTML: comp.label
+          innerHTML: comp.label,
+          title: comp.label
         }
       })
     ];
     compChildren.push(this.getAvailableDirections(comp).map((line) => this.addNode(line)));
     comp.out.map(line => this.createLineGroup(line));
 
-    var wrappedComp = this.ce('div', {
+    let wrappedComp = this.ce('div', {
       id: comp.id,
       style: wrapperStyle,
       on: {
@@ -314,7 +333,13 @@ export default class Workspace extends Base {
       return;
     }
     this.component = this.getComponentById(this.flows, componentId);
-    this.workspace.parentNode.appendChild(new Modal(this.component).open());
+    if (this.storage.instance) {
+      this.modal.remove();
+      this.storage.instance = null;
+    }
+    this.storage.instance = new Modal(this.component);
+    this.modal = this.storage.instance.open();
+    this.workspace.parentNode.appendChild(this.modal);
   }
 
   showNodes(e) {
@@ -365,7 +390,7 @@ export default class Workspace extends Base {
 
   addNode(direction, isTemp) {
     const comp = isTemp ? this.tempComp : this.component;
-    var nodeStyle =
+    let nodeStyle =
       'width: 15px; height: 15px; position: absolute; z-index: -1; border-radius: 50%; cursor: crosshair;';
     const calc = comp.type === 'condition' ? 0 : 50;
     if (direction === 'top') {
@@ -377,7 +402,7 @@ export default class Workspace extends Base {
     } else {
       nodeStyle += `left: -8px; bottom: calc(${calc}% - 8px);`;
     }
-    var createdNode = this.ce('div', {
+    let createdNode = this.ce('div', {
       id: `node-${comp.id}-${direction}`,
       class: 'node-' + `${isTemp ? isTemp+' temp': comp.id}`,
       style: nodeStyle,
@@ -399,7 +424,7 @@ export default class Workspace extends Base {
     }
     const labelText = this.component.out.length === 0 ? 'Yes' : 'No';
     this.line.condition = labelText;
-    var conditionStyle =
+    let conditionStyle =
       'width: 15px; height: 15px; position: absolute; cursor: default;';
     let labelTransform;
     if (direction === 'top') {
@@ -412,7 +437,7 @@ export default class Workspace extends Base {
       labelTransform = 'translate(-40px, -5px)';
     }
     labelTransform += ' rotate(-45deg)'
-    var createdLabel = this.ce('div', {
+    let createdLabel = this.ce('div', {
       id: 'condition-' + `${this.component.id}-${direction}`,
       class: 'condition-' + `${isTemp ? isTemp+' temp': this.component.id}`,
       style: conditionStyle,
@@ -447,7 +472,7 @@ export default class Workspace extends Base {
   mouseDown(e) {
     e.preventDefault();
     // check mouse click button is left
-    if (e.which !== 1) {
+    if (e.which !== 1 || this.menuOptions) {
       return;
     }
     if (this.lineElement) {
@@ -479,7 +504,7 @@ export default class Workspace extends Base {
   }
 
   mouseMove(e) {
-    if (!this.element) {
+    if (!this.element || this.menuOptions) {
       return;
     }
     if (this.element.id.indexOf('workspace') === 0) {
@@ -492,7 +517,7 @@ export default class Workspace extends Base {
   }
 
   mouseEnd(e) {
-    if (!this.element) {
+    if (!this.element || this.menuOptions) {
       return;
     }
     if (this.element.id.indexOf('workspace') === 0) {
@@ -783,6 +808,7 @@ export default class Workspace extends Base {
     }, {
       id: line.id,
       class: 'line-' + this.component.id,
+      ['data-comp']: this.component.id,
       ['data-direction']: line.direction,
       style: 'position: absolute; z-index: -2; cursor: crosshair;',
     }, [
@@ -974,7 +1000,7 @@ export default class Workspace extends Base {
 
   getComponentById(comps, id) {
     return comps.find(comp => {
-      return comp.id === id;
+      return (comp.id === id);
     });
   }
 
@@ -1036,11 +1062,13 @@ export default class Workspace extends Base {
     e.preventDefault();
     this.closeMenuOptions();
     this.setElemByEvent(e);
-    if (this.element.id.indexOf('line') === 0) {
-      //
-    } else if (this.element.id.indexOf('comp') === 0) {
+    if (this.element.id.indexOf('comp') === 0) {
       this.component = this.getComponentById(this.flows, this.element.id);
+    } else if (this.element.id.indexOf('linecomp') === 0) {
+      // this.component = this.getComponentById(this.flows, this.element.dataset.comp);
+      this.component = this.getComponentById(this.flows, this.element.dataset.comp).out[0];
     } else {
+      this.clearComponent();
       return;
     }
     let menuItems = [];
@@ -1060,8 +1088,8 @@ export default class Workspace extends Base {
         innerHTML: "Edit"
       }
     }));
-    menuItems.push(deleteMenu().bind(this));
-    this.component.id.indexOf('line') === -1 && menuItems.push(editMenu().bind(this));
+    menuItems.push(deleteMenu());
+    this.component.id.indexOf('line') === -1 && menuItems.push(editMenu());
     this.menuOptions = this.ce('div', {
       id: 'menuOptions',
       style: `transform: translate(${e.x}px, ${e.y}px)`
@@ -1074,20 +1102,42 @@ export default class Workspace extends Base {
   // Delete the component
   deleteMenu(e) {
     this.closeMenuOptions();
-    if (this.line) {
-      this.getElementById(this.line.id).remove();
-      const source = this.getComponentById(this.flows, this.component.id).out;
-      source.splice(source.indexOf(this.line), 1);
-      const destination = this.getComponentById(this.flows, this.line.destination).in;
-      destination.find((dest, index) => {
-        if (dest.source === source.id) {
-          destination.splice(index, 1);
+    if (this.component.id.indexOf('line') === 0) {
+      const line = document.getElementById(this.component.id)
+      line.remove();
+      const source = this.getComponentById(this.flows,
+        this.component.id.substring(4, this.component.id.length - 2));
+      source.out.map((line, index) => {
+        if (line.id === this.component.id) {
+          source.out.splice(index, 1);
         }
       });
+      const destination = this.getComponentById(this.flows, this.component.destination);
+      destination.in.map((comp, index) => {
+        if (comp.source === source.id) {
+          destination.in.splice(index, 1);
+        }
+      });
+      // If comp is used instead of line
+      // this.getElementById(this.component.id).remove();
+      // const source = this.getComponentById(this.flows, this.component.id).out;
+      // source.splice(source.indexOf(this.line), 1);
+      // const destination = this.getComponentById(this.flows, this.line.destination).in;
+      // destination.find((dest, index) => {
+      //   if (dest.source === source.id) {
+      //     destination.splice(index, 1);
+      //   }
+      // });
     } else {
-      this.getElementById(this.component.id).remove();
       this.flows.splice(this.flows.indexOf(this.component), 1);
+      this.clearComponent();
+      if (this.storage.instance) {
+        this.modal.remove();
+        this.storage.instance = null;
+      }
     }
+    this.renderComponents(this.flows);
+
   }
 
   // Open the component Modal
@@ -1098,6 +1148,6 @@ export default class Workspace extends Base {
 
   // Close the menu options while clicking other than components.
   closeMenuOptions(e) {
-    this.menuOptions && this.menuOptions.remove();
+    this.menuOptions && this.menuOptions.remove(), this.menuOptions = null;
   }
 }

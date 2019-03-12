@@ -1,13 +1,15 @@
 import Base from '../base/Base';
+import EventEmitter from '../EventEmitter/EventEmitter';
 import './palette.css';
 
 export default class Palette extends Base {
   constructor() {
     super();
+    this.eventEmitter = EventEmitter.getInstance();
     this.palette;
     this.dragElem;
     this.zoom = 1;
-    document.addEventListener("onZoom", this.onZoom.bind(this), false);
+    this.eventEmitter.subscribe('onZoom', this.onZoom.bind(this));
   }
 
   onZoom(e) {

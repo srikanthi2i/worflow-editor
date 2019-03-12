@@ -19,6 +19,14 @@ label {
   display: inline-block;
 }
 
+.textOverflowEllipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  padding: 10px;
+}
+
 input[type=text] {
   width: 70%;
   padding: 10px;
