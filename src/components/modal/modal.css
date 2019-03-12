@@ -50,7 +50,7 @@
 }
 
 .tab-content {
-  height: calc(100% - 110px);
+  height: calc(100% - 155px);
   margin-top: 10px;
   border-radius: 5px;
   border: 1px solid #00e8ff;
@@ -70,3 +70,26 @@ label.data {
 #editor {
   height: 200px;
 }
+
+.addKey{
+  border: 1px solid #6df2ff;
+  padding: 7px;
+  font-size: 13px;
+}
+
+.deleteKey{
+  border: 1px solid red;
+  padding: 7px;
+  font-size: 12px;
+}
+
+.saveButton {
+  border: 1px solid #4ce67b;
+  padding: 7px;
+  font-size: 14px;
+  color: #4ce67b;
+  float: right;
+  margin-right: 11px;
+  margin-top: 23px;
+}
+
