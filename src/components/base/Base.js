@@ -19,6 +19,13 @@ export default class Base {
     return prefix + '-' + str;
   }
 
+  getSVGTag(tag) {
+    return {
+      namespace: 'http://www.w3.org/2000/svg',
+      tag
+    }
+  }
+
   ce(elemType, attributes, child = null) {
     let elem;
     if (typeof (elemType) === 'string') {

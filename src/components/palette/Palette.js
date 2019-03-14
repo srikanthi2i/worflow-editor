@@ -1,5 +1,8 @@
 import Base from '../base/Base';
 import './palette.css';
+import {
+  Drawables
+} from '../drawables';
 
 export default class Palette extends Base {
   constructor() {
@@ -15,7 +18,6 @@ export default class Palette extends Base {
   }
 
   dragStart(e) {
-    var dropStyle = 'width: 100px; height: 100px;';
     e.dataTransfer.setData('data', e.target.id);
     this.dragElem = e.target.cloneNode(true);
     this.ce(this.dragElem, {
@@ -23,65 +25,50 @@ export default class Palette extends Base {
         position: 'absolute',
         zIndex: -1,
         top: '100px',
-        left: '100px'
+        left: '100px',
+        padding: 0
       }
     });
-    if (e.target.id === 'event') {
-      dropStyle += `border-radius: 50%; transform: scale(${this.zoom});`;
-    } else if (e.target.id === 'action') {
-      dropStyle += `height: 50px; transform: scale(${this.zoom});`;
-    } else {
-      dropStyle += `transform: rotate(45deg) scale(${this.zoom});`;
-    }
-    this.ce(this.dragElem.getElementsByClassName("drag-item")[0], {
-      style: dropStyle,
-    });
+    this.dragElem.firstChild.style.transform = `scale(${this.zoom*2})`;
     document.getElementById('workflow').appendChild(this.dragElem);
-    e.dataTransfer.setDragImage(this.dragElem, 50, 25);
+    e.dataTransfer.setDragImage(this.dragElem, 50 * this.zoom, 25 * this.zoom);
   }
 
   dragOver(e) {
     this.dragElem.remove();
   }
 
+  getPaletteItems() {
+    return Object.keys(Drawables.categories).map(category => this.ce('div', {
+      class: 'category'
+    }, [
+      this.ce('div', {
+        class: 'title',
+        keys: {
+          innerHTML: category
+        }
+      }),
+      this.ce('div', {
+        class: 'content'
+      },
+        Object.keys(Drawables.categories[category]).map(comp => this.ce('div', {
+          id: comp,
+          class: 'icon',
+          draggable: true
+        }, new Drawables.components[comp]().getIcon())))
+    ]));
+  }
+
   create() {
     this.palette = this.ce('div', {
       id: 'palette',
       class: 'palette',
+      on: {
+        dragstart: this.dragStart.bind(this),
+        dragover: this.dragOver.bind(this)
+      }
     }, [
-      this.ce('div', {
-        id: 'event',
-        draggable: true,
-        on: {
-          dragstart: this.dragStart.bind(this),
-          dragover: this.dragOver.bind(this)
-        }
-      }, this.ce('div', {
-        class: 'drag-item',
-        style: 'margin-top: 5px; border-radius: 50%;'
-      })),
-      this.ce('div', {
-        id: 'action',
-        draggable: true,
-        on: {
-          dragstart: this.dragStart.bind(this),
-          dragover: this.dragOver.bind(this)
-        }
-      }, this.ce('div', {
-        class: 'drag-item',
-        style: 'margin-top: 5px; height: 25px;'
-      })),
-      this.ce('div', {
-        id: 'condition',
-        draggable: true,
-        on: {
-          dragstart: this.dragStart.bind(this),
-          dragover: this.dragOver.bind(this)
-        }
-      }, this.ce('div', {
-        class: 'drag-item',
-        style: 'margin-top: 5px; transform: rotate(45deg) scale(0.75)'
-      }))
+      ...this.getPaletteItems()
     ]);
     return this.palette;
   }

@@ -1,3 +1,3 @@
- import Workflow from './components/workflow/Workflow'
+ import Workflow from './Workflow'
 
  new Workflow(document.getElementById('root'), '').create()

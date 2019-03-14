@@ -3,7 +3,7 @@ import ace from 'ace-builds';
 import './modal.css';
 
 export default class Modal extends Base {
-  constructor(component) {
+  constructor(component, options) {
     super();
     var head = document.getElementsByTagName('head')[0];
     var theScript = document.createElement('script');
@@ -93,7 +93,7 @@ export default class Modal extends Base {
     return this.modal;
   }
 
-  close() {
+  close(e) {
     this.modal.innerHTML = "";
     this.modal.style.height = 0;
     const timeout = setTimeout(() => {

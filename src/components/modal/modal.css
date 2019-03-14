@@ -39,21 +39,21 @@
   font-size: 1em;
   text-transform: capitalize;
   border-radius: 20px;
-  border-top: 1px solid #00e8ff;
-  border-right: 1px solid #6df2ff;
-  border-bottom: 1px solid #00e8ff;
+  border-top: 1px solid #ababab;
+  border-right: 1px solid #ababab;
+  border-bottom: 1px solid #ababab;
   cursor: pointer;
 }
 
 .tab-header.active {
-  background: #6df2ff;
+  background: #ababab;
 }
 
 .tab-content {
   height: calc(100% - 110px);
   margin-top: 10px;
   border-radius: 5px;
-  border: 1px solid #00e8ff;
+  border: 1px solid #ababab;
 }
 
 .field {

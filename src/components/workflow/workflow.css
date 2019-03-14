@@ -1,9 +1,0 @@
-#workflow {
-  position: relative;
-  display: block;
-  width: calc(95% - 2.5em);
-  height: 600px;
-  margin-left: 6em;
-  padding: 5px;
-  box-shadow: 1px 5px 20px #393939;
-}

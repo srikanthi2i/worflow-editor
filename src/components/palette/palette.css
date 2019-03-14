@@ -1,20 +1,37 @@
 .palette {
-  padding: 0 5px 5px;
-  width: 60px;
-  position: absolute;
-  top: 0;
-  left: -65px;
-  background: #f3f3f3;
-  box-shadow: 1px 5px 20px #393939;
+  display: inline-block;
+  position: relative;
+  width: calc(15% - 0.5em);
+  height: 100%;
+  vertical-align: top;
+  background: #ffffff;
+  border: 1px solid;
+  border-right: none;
 }
 
-.drag-item {
+.category {
+  margin-bottom: 0.25em;
+}
+
+.category .title {
+  font-size: 1.5em;
+  background: #f3f3f3;
+  text-transform: capitalize;
+  padding: 0.25em;
+}
+
+.category .content {
+  padding: 0.25em;
+}
+
+.category .icon {
+  display: inline-flex;
+  align-items: center;
+  margin: 0.25em 0.25em 0 0;
+  padding: 0.25em;
+  border: 1px solid #a9a9a9;
   width: 50px;
   height: 50px;
-  border: 1px dotted #aaa;
-  background: #faffb0;
-}
-
-.palette .drag-item {
-  cursor: grabbing;
+  vertical-align: top;
+  box-sizing: content-box !important;
 }
