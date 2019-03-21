@@ -10,6 +10,7 @@
   border-radius: 5px;
   box-shadow: 1px 5px 20px #393939;
   transition-timing-function: ease-in-out;
+  z-index: 1;
 }
 
 .modal-title {

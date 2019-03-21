@@ -41,12 +41,21 @@ export default class Stroke extends Drawable {
     x: mx,
     y: my
   }, points, scale) {
-    return points.reduce((acc, {
+    const lines = [];
+    points.reduce((acc, {
       x,
       y
     }) => {
-      return `${acc} l ${x*scale} ${y*scale}`;
-    }, `M ${mx} ${my}`);
+      lines.push(`M ${acc.x} ${acc.y} l ${x*scale} ${y*scale}`);
+      return {
+        x: acc.x + x * scale,
+        y: acc.y + y * scale
+      };
+    }, {
+      x: mx,
+      y: my
+    });
+    return lines;
   }
 
   getStroke(scale = 1) {
@@ -56,23 +65,100 @@ export default class Stroke extends Drawable {
       strokeDasharray,
       fill
     } = this.design;
+    const linePaths = [];
+    const lines = this.getStrokePath(this.schema.position, this.schema.points, scale);
+    lines.forEach(line => {
+      linePaths.push(this.ce(this.getSVGTag('path'), {
+        class: 'path',
+        nativeStyle: {
+          strokeWidth,
+          stroke,
+          strokeDasharray,
+          fill
+        },
+        d: line
+      }));
+    });
     return this.ce(this.getSVGTag('g'), {
       class: 'drawable',
       nativeStyle: {
         position: 'absolute'
       },
       ['data-type']: this.schema.type
-    }, this.ce(this.getSVGTag('path'), {
-      id: 'path',
-      class: 'path',
+    }, [...linePaths, this.ce(this.getSVGTag('path'), {
+      id: 'arrow',
       nativeStyle: {
-        strokeWidth,
-        stroke,
-        strokeDasharray,
-        fill
+        strokeWidth: 1,
+        opacity: 1,
+        stroke: 'black'
       },
-      d: this.getStrokePath(this.schema.position, this.schema.points, scale)
-    }));
+      d: this.getArrowPath(this.schema.position, this.schema.points),
+    })]);
+  }
+
+  getArrowPath(position, points) {
+    let arrowPath = '';
+    const currIndex = points.length - 1;
+    let x = position.x;
+    let y = position.y;
+    for (let index = 0; index <= currIndex; index++) {
+      x += points[index].x;
+      y += points[index].y;
+    }
+    let nx = x - points[currIndex].x;
+    let ny = y - points[currIndex].y;
+    const direction = this.getLineDirection({
+      x: nx,
+      y: ny
+    }, {
+      x,
+      y
+    });
+    if (direction === 'up' || direction === 'down') {
+      nx -= 6;
+    } else {
+      ny -= 6;
+    }
+    switch (direction) {
+      case 'up':
+        arrowPath = (`M ${2.5 + nx} ${y} L ${nx + 6.25} ${y - 7.5} 
+                      L ${nx + 10} ${y} z`);
+        break;
+      case 'right':
+        arrowPath = (`M ${x} ${2.5 + ny} L ${x + 7.5 } ${6.25 + ny}
+                      L ${x} ${ny + 10} z`);
+        break;
+      case 'down':
+        arrowPath = (`M ${2.5 + nx} ${y } L ${6.25 + nx} ${y  + 7.5} 
+                      L ${10 + nx} ${y} z`);
+        break;
+      case 'left':
+        arrowPath = (`M ${x} ${2.5 + ny} L ${x - 7.5} ${6.25 + ny}
+                      L ${x} ${10 + ny} z`);
+        break;
+      default:
+        break;
+    }
+    return arrowPath;
+  }
+
+
+  getLineDirection(start, end) {
+    if (start.x === end.x) {
+      if (start.y < end.y) {
+        return 'down';
+      } else {
+        return 'up';
+      }
+    } else if (start.y === end.y) {
+      if (start.x < end.x) {
+        return 'right';
+      } else {
+        return 'left';
+      }
+    } else {
+      return null;
+    }
   }
 
   getIcon() {
@@ -205,7 +291,7 @@ export default class Stroke extends Drawable {
 
   trackMove(e, zoom) {
     const current = this.getCurrentPos(e, zoom);
-    this.setPoints(this.getMovedDistance(current, this.initial), e,zoom);
+    this.setPoints(this.getMovedDistance(current, this.initial), e, zoom);
     this.redraw(true);
   }
 

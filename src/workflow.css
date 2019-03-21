@@ -5,3 +5,23 @@
   height: 600px;
   padding: 5px;
 }
+
+.navigation-button {
+  border: none;
+  outline: none;
+  background-color: #e8e8e8;
+  color: #909090;
+  width: 25px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #fdf8f8;
+}
+.navigation-button:hover {
+  color: #000000;
+}
+.navigation-button.focus {
+  background-color: #d4d1d1;
+  border: 1px solid black;
+  color: #000000;
+}
