@@ -33,11 +33,20 @@ export default class Dotted extends Stroke {
     x: mx,
     y: my
   }, points, scale) {
-    return points.reduce((acc, {
+    const lines = [];
+    points.reduce((acc, {
       x,
       y
     }) => {
-      return `${acc} l ${x*scale} ${y*scale}`;
-    }, `M ${mx} ${my}`);
+      lines.push(`M ${acc.x} ${acc.y} l ${x*scale} ${y*scale}`);
+      return {
+        x: acc.x + x*scale,
+        y: acc.y + y*scale
+      };
+    }, {
+      x: mx,
+      y: my
+    });
+    return lines;
   }
 }
