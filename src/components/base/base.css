@@ -5,6 +5,15 @@ body {
   padding: 0;
 }
 
+.textOverflowEllipsis {
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  padding: 0px 10px;
+}
+
 button {
   background-color: #ffffff;
   border: 1px solid;
@@ -19,12 +28,13 @@ label {
   display: inline-block;
 }
 
-input[type=text] {
+input:not([type=checkbox]):not([type=radio]),
+textarea {
   width: 70%;
   padding: 10px;
   margin: 10px 0;
   display: inline-block;
-  border: 1px solid #ababab;
+  border: 1px solid #ababaa;
   border-radius: 4px;
   box-sizing: border-box;
   outline: none;

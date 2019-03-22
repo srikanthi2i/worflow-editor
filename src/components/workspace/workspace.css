@@ -46,7 +46,8 @@
 }
 
 #menuOptions {
-  position: fixed;
+  position: absolute;
+  top: 0;
   border: 1px solid #B2B2B2;
   width: 150px;
   background: #F9F9F9;
