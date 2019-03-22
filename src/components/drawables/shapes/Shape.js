@@ -26,6 +26,7 @@ export default class Shape extends Drawable {
 
   constructor(elem, schema, options) {
     super(elem, schema, options);
+    this.options = options;
   }
 
   get baseSchema() {
@@ -54,7 +55,6 @@ export default class Shape extends Drawable {
         y: 50
       }
     ];
-    console.log('here second');
     return this._nodes;
   }
 
@@ -105,6 +105,26 @@ export default class Shape extends Drawable {
     }, this.getShape(scale));
   }
 
+  enableContextMenu(cb, key, id) {
+    const editMenu = (this.ce('li', {
+      on: {
+        click: this.editMenu.bind(this)
+      },
+      keys: {
+        innerHTML: "Edit"
+      }
+    }));
+    if (key === 'component') {
+      return [editMenu, super.enableContextMenu(cb, key, id)];
+    } else {
+      return [super.enableContextMenu(cb, key, id)];
+    }
+  }
+
+  editMenu() {
+    this.openModal(this.parent.parentElement.parentElement, this.options);
+  }
+
   build() {
     const {
       x: textX,
@@ -123,17 +143,25 @@ export default class Shape extends Drawable {
         mouseover: this.showNodes.bind(this),
         mouseleave: this.hideNodes.bind(this)
       }
-    }, this.ce(this.getSVGTag('text'), {
-      x: position.x + textX,
-      y: position.y + textY + lineHeightOff,
-      ['text-anchor']: "middle",
+    }, this.ce(this.getSVGTag('foreignObject'), {
+      x: position.x,
+      y: position.y + textY - 9.75,
+      width: 100,
+      height: 100,
       nativeStyle: {
         textTransform: 'capitalize'
       },
-      keys: {
-        innerHTML: label
-      }
-    }));
+      class: 'textOverflowEllipsis',
+
+    }, [
+      this.ce('span', {
+        keys: {
+          innerHTML: label,
+          title: label
+
+        }
+      })
+    ]));
     this.ac(this.parent, this.element);
     return this.element;
   }
@@ -171,7 +199,7 @@ export default class Shape extends Drawable {
   }
 
   doubleClick(e) {
-    this.openModal(this.parent.parentElement);
+    this.openModal(this.parent.parentElement.parentElement, this.options);
   }
 
   showNodes(e) {
@@ -250,11 +278,11 @@ export default class Shape extends Drawable {
       this.line = null;
     } else {
       this.schema.in.push({
-        source: component._id
+        source: component.schema._id
       });
     }
   }
-  
+
   clearLine() {
     this.line.element.remove();
     this.line = null;

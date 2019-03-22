@@ -64,8 +64,40 @@ export default class Drawable extends Component {
     super.stopMove(e);
   }
 
-  openModal(elem) {
-    this.modal = new Modal(this.schema, {}).open();
+  openModal(elem, options = {}) {
+    this.modal = new Modal(this.schema, options).open();
     this.ac(elem, this.modal);
+  }
+
+  enableContextMenu(cb, key, id) {
+    const deleteMenu = (this.ce('li', {
+      on: {
+        click: this.deleteMenu.bind(this, cb, key, id)
+      },
+      keys: {
+        innerHTML: "Delete"
+      }
+    }));
+    return deleteMenu;
+  }
+
+  deleteMenu(cb, key, id) {
+    if (key === 'component') {
+      if (document.getElementById(this.schema.id)) {
+        document.getElementById(this.schema.id).remove();
+        document.getElementById("menuOptions").remove();
+        if (this.modal) {
+          this.modal.remove();
+        }
+        cb();
+      }
+    } else {
+      document.getElementById(id).remove();
+      if (this.modal) {
+        this.modal.remove();
+      }
+      cb();
+    }
+  
   }
 }

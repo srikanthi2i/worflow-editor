@@ -13,6 +13,49 @@
   z-index: 1;
 }
 
+
+.modalStyle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+}
+
+.displayFlexEnd {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 7px;
+}
+
+.buttonStyle {
+  color: red;
+  font-weight: bold;
+}
+
+.displayFlex {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 7px;
+}
+
+.displayFlexSpace {
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.8em;
+}
+
+.select {
+  width: 70%;
+  padding: 10px;
+  margin: 10px 0;
+  display: inline-block;
+  border: 1px solid #ababaa;
+  border-radius: 4px;
+  box-sizing: border-box;
+  outline: none;
+}
+
 .modal-title {
   padding: 1em;
   font-size: 1.3em;
@@ -40,28 +83,33 @@
   font-size: 1em;
   text-transform: capitalize;
   border-radius: 20px;
-  border-top: 1px solid #ababab;
-  border-right: 1px solid #ababab;
-  border-bottom: 1px solid #ababab;
+  border-top: 1px solid #ababaa;
+  border-right: 1px solid #ababaa;
+  border-bottom: 1px solid #ababaa;
   cursor: pointer;
 }
 
 .tab-header.active {
-  background: #ababab;
+  background: #ababaa;
 }
 
 .tab-content {
-  height: calc(100% - 110px);
+  height: calc(100% - 155px);
   margin-top: 10px;
   border-radius: 5px;
-  border: 1px solid #ababab;
+  border: 1px solid #ababaa;
 }
 
 .field {
   padding: 0.8em;
-  padding-bottom: 0; 
+  padding-bottom: 0;
   width: 100%;
   box-sizing: border-box;
+}
+
+input[type="text"].inputStyle {
+  width: 39% ;
+  margin-right: 15px;
 }
 
 label.data {
@@ -70,4 +118,36 @@ label.data {
 
 #editor {
   height: 200px;
+}
+
+.nextButton {
+  cursor: pointer;
+  float: left;
+  border: 1px solid black;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+}
+
+.addKey {
+  border: 1px solid #dbdbdb;
+  padding: 7px;
+  font-size: 13px;
+}
+
+.deleteKey {
+  border: 1px solid red;
+  padding: 7px;
+  font-size: 12px;
+}
+
+.saveButton {
+  border: 1px solid #4ce67b;
+  padding: 7px;
+  font-size: 14px;
+  color: #4ce67b;
+  float: right;
+  margin-right: 11px;
+  margin-top: 23px;
 }

@@ -68,7 +68,7 @@ export default class Stroke extends Drawable {
     const linePaths = [];
     const lines = this.getStrokePath(this.schema.position, this.schema.points, scale);
     lines.forEach(line => {
-      linePaths.push(this.ce(this.getSVGTag('path'), {
+      const path = this.ce(this.getSVGTag('path'), {
         class: 'path',
         nativeStyle: {
           strokeWidth,
@@ -77,7 +77,15 @@ export default class Stroke extends Drawable {
           fill
         },
         d: line
-      }));
+      });
+      const pseudoPath = path.cloneNode(true);
+      this.ce(pseudoPath, {
+        nativeStyle: {
+          stroke: 'transparent',
+          strokeWidth: 10
+        }
+      })
+      linePaths.push(path, pseudoPath);
     });
     return this.ce(this.getSVGTag('g'), {
       class: 'drawable',
