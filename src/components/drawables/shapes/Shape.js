@@ -1,5 +1,5 @@
 import Drawable from '../Drawable';
-import Stroke from '../strokes/Stroke';
+import { Drawables } from '..';
 
 export default class Shape extends Drawable {
   static schema(...extend) {
@@ -26,7 +26,6 @@ export default class Shape extends Drawable {
 
   constructor(elem, schema, options) {
     super(elem, schema, options);
-    this.options = options;
   }
 
   get baseSchema() {
@@ -122,15 +121,15 @@ export default class Shape extends Drawable {
   }
 
   editMenu() {
-    this.openModal(this.parent.parentElement.parentElement, this.options);
+    this.openModal(this.parent.parentElement, this.modalOptions);
   }
 
-  build() {
+  build(modal) {
     const {
       x: textX,
       y: textY
     } = this.getOrigin();
-    const lineHeightOff = 3.25;
+    const lineHeightOff = 9.75;
     const {
       id,
       position,
@@ -145,9 +144,9 @@ export default class Shape extends Drawable {
       }
     }, this.ce(this.getSVGTag('foreignObject'), {
       x: position.x,
-      y: position.y + textY - 9.75,
-      width: 100,
-      height: 100,
+      y: position.y + textY - lineHeightOff,
+      width: this.design.width,
+      height: 20,
       nativeStyle: {
         textTransform: 'capitalize'
       },
@@ -162,6 +161,10 @@ export default class Shape extends Drawable {
         }
       })
     ]));
+    this.schema.out.length && this.schema.out.forEach(lineSchema => {
+      Drawables.createComponent('stroke', this.parent, lineSchema).build();
+    });
+    modal && this.openModal(modal, this.modalOptions);
     this.ac(this.parent, this.element);
     return this.element;
   }
@@ -199,7 +202,7 @@ export default class Shape extends Drawable {
   }
 
   doubleClick(e) {
-    this.openModal(this.parent.parentElement.parentElement, this.options);
+    this.openModal(this.parent.parentElement, this.modalOptions);
   }
 
   showNodes(e) {
@@ -243,6 +246,28 @@ export default class Shape extends Drawable {
     this.highlighted = null;
   }
 
+  startMove(e, zoom) {
+    if (e.target.classList.contains('node')) {
+      this.element.style.cursor = 'crosshair';
+      this.beginLineConnect(e);
+      this.line.startMove(e, zoom);
+    } else {
+      super.startMove(e, zoom);
+    }
+  }
+
+  stopMove(e, zoom, cb) {
+    if (e.target.classList.contains('node')) {
+      this.element.style.cursor = '';
+      this.endLineConnect(e);
+      this.line.stopMove(e, zoom);
+      cb({...this.schema}, {...this.line.schema});
+    } else {
+      super.stopMove(e, zoom);
+      cb(this.schema);
+    }
+  }
+
   getOffsetAxis(point) {
     if (point.x === 0 || point.x === this.design.width) {
       return 'y';
@@ -251,31 +276,21 @@ export default class Shape extends Drawable {
   }
 
   beginLineConnect(e) {
-    this.line = new Stroke(this.parent);
-    let {
-      x,
-      y
-    } = this.schema.position;
     const node = this.nodes[e.target.dataset.index];
-    this.line.offsetAxis = this.getOffsetAxis(node);
-    x += node.x;
-    y += node.y;
-    this.line.schema.position = {
-      x,
-      y
-    };
-    this.line.schema.points = [{
-      x: 0,
-      y: 0
-    }];
-    this.line.build(true);
+    const lineSchema = {
+      position: {
+        ...this.schema.position
+      }
+    }
+    let offsetAxis = this.getOffsetAxis(node);
+    this.line = Drawables.createComponent('stroke', this.parent, lineSchema);
+    this.line.build(node, offsetAxis);
   }
 
-  endLineConnect(e, component) {
+  endLineConnect(e) {
     if (this.line) {
       this.line.schema.destination = component._id;
       this.schema.out.push(this.line.schema);
-      this.line = null;
     } else {
       this.schema.in.push({
         source: component.schema._id

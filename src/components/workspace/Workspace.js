@@ -1,35 +1,137 @@
-import modalOptions from './ModalOptions';
-import Tools from './Tools';
-import './workspace.css';
 import {
   Drawables
 } from '../drawables';
 import Component from '../Component';
+import Tools from './Tools';
+import './workspace.css';
+
 export default class Workspace extends Component {
-  constructor() {
-    super();
+  constructor(schema, options) {
+    super(schema, options);
     this._id = 'workspace';
     this.components = [];
-    this.components.push(this);
     this.workspace = {
       x: 0,
       y: 0,
       zoom: 1
     }
-    this.options = modalOptions;
     this.component;
     this.menuOptions;
-    this.flows = [];
+    this.flows = [{
+        "id": "flow-914272",
+        "data": {},
+        "key": "event",
+        "label": "event",
+        "position": {
+          "x": 57,
+          "y": 155
+        },
+        "type": "event",
+        "out": [{
+          "id": "flow-541922",
+          "data": {},
+          "key": "",
+          "label": "",
+          "position": {
+            "x": 157,
+            "y": 205
+          },
+          "type": "stroke",
+          "points": [{
+            "x": 126,
+            "y": 0
+          }],
+          "destination": "flow-525308"
+        }],
+        "in": [],
+        "scale": 1
+      },
+      {
+        "id": "flow-525308",
+        "data": {},
+        "key": "action",
+        "label": "action",
+        "position": {
+          "x": 292,
+          "y": 180
+        },
+        "type": "action",
+        "out": [{
+          "id": "flow-340892",
+          "data": {},
+          "key": "",
+          "label": "",
+          "position": {
+            "x": 328,
+            "y": 230
+          },
+          "type": "stroke",
+          "points": [{
+            "x": 0,
+            "y": 88
+          }],
+          "destination": "flow-372591"
+        }],
+        "in": [{
+          "source": "flow-914272"
+        }],
+        "scale": 1
+      },
+      {
+        "id": "flow-372591",
+        "data": {},
+        "key": "condition",
+        "label": "condition",
+        "position": {
+          "x": 278,
+          "y": 327
+        },
+        "type": "condition",
+        "out": [{
+          "id": "flow-240265",
+          "data": {},
+          "key": "",
+          "label": "",
+          "position": {
+            "x": 377,
+            "y": 377
+          },
+          "type": "stroke",
+          "points": [{
+            "x": 148,
+            "y": 0
+          }],
+          "destination": "flow-276009"
+        }],
+        "in": [{
+          "source": "flow-525308"
+        }],
+        "scale": 1
+      },
+      {
+        "id": "flow-276009",
+        "data": {},
+        "key": "event",
+        "label": "event",
+        "position": {
+          "x": 534,
+          "y": 327
+        },
+        "type": "event",
+        "out": [],
+        "in": [{
+          "source": "flow-372591"
+        }],
+        "scale": 1
+      }
+    ];
+    this.components.push(this);
     document.addEventListener("componentUpdate", this.componentUpdate.bind(this), false);
   }
 
   componentUpdate(e) {
-    let FilterComponent = this.flows.find(function (flow) {
-      return flow.id === e.detail.componentId;
-    })
-    let index = this.flows.indexOf(FilterComponent);
-    FilterComponent.label = e.detail.value;
-    this.flows[index] = FilterComponent;
+    let schema = this.flows.find((schema) => schema.id === e.detail.componentId);
+    schema.label = e.detail.value;
   }
 
   reset(e) {
@@ -42,6 +144,7 @@ export default class Workspace extends Component {
   }
 
   zoom(e, action) {
+    e.preventDefault();
     var delta;
     const layer = {
       x: e.layerX,
@@ -56,7 +159,6 @@ export default class Workspace extends Component {
       delta = (e.wheelDelta || -e.detail);
     }
     this.scrollTop += (delta < 0 ? 1 : -1) * 30;
-    e.preventDefault();
     var oz = this.workspace.zoom,
       nz = this.workspace.zoom + (delta < 0 ? -0.2 : 0.2);
     if (nz < 1 || nz > 15) {
@@ -112,14 +214,15 @@ export default class Workspace extends Component {
   drop(e) {
     e.preventDefault();
     const compType = e.dataTransfer.getData('data');
-    const component = Drawables.createComponent(compType, this.element, null, this.options);
-    component.schema.position = {
-      ...this.getDroppedPosition(e, this.workspace)
+    const schema = {
+      position: {
+        ...this.getDroppedPosition(e, this.workspace)
+      }
     }
+    const component = Drawables.createComponent(compType, this.element, schema, this.options);
+    component.build(this.parent);
     this.components.push(component);
     this.flows.push(component.schema);
-    component.build();
-    component.openModal(this.parent.parentElement, this.options);
   }
 
   mouseDown(e) {
@@ -129,55 +232,79 @@ export default class Workspace extends Component {
       return;
     }
     const id = e.target.parentElement.id;
-    this.component = this.getComponentById(this.components, id);
-    const {
-      zoom
-    } = this.workspace;
-    if (this.component) {
-      if (e.target.classList.contains('node')) {
-        this.element.style.cursor = 'crosshair';
-        this.component.beginLineConnect(e);
-        this.component.line.startMove(e, zoom);
-      } else {
-        this.component.startMove(e, zoom);
-      }
+    if (id === 'workspace') {
+      this.component = this;
+    } else if (id.indexOf('flow') === 0) {
+      this.component = this.getComponentById(this.components, id);
     }
+    this.component && this.component.startMove(e, this.workspace.zoom);
+    // if (this.component) {
+    //   if (e.target.classList.contains('node')) {
+    //     this.element.style.cursor = 'crosshair';
+    //     this.component.beginLineConnect(e);
+    //     this.component.line.startMove(e, zoom);
+    //   } else {
+    //     this.component.startMove(e, zoom);
+    //   }
+    // }
   }
 
   mouseMove(e) {
-    if (this.component) {
-      const {
-        zoom
-      } = this.workspace;
-      if (this.component.line) {
-        this.component.line.trackMove(e, zoom);
-      } else {
-        this.component.trackMove(e, zoom);
-      }
-    }
+    this.component && this.component.trackMove(e, this.workspace.zoom);
+    // if (this.component) {
+    //   if (this.component.line) {
+    //     this.component.line.trackMove(e, zoom);
+    //   } else {
+    //     this.component.trackMove(e, zoom);
+    //   }
+    // }
   }
 
   mouseEnd(e) {
-    if (this.component) {
-      const {
-        zoom
-      } = this.workspace;
-      if (this.component.line) {
-        this.element.style.cursor = '';
-        const id = e.target.parentElement.id;
-        const target = this.getComponentById(this.components, id);
-        if (e.target.classList.contains('node')) {
-          this.component.line.stopMove(e, zoom);
-          target.endLineConnect(e, this.component.line);
-          this.component.endLineConnect(e, target);
-        } else {
-          this.component.clearLine();
-        }
-      } else {
-        this.component.stopMove(e, zoom);
-      }
-    }
+    this.component && this.component.stopMove(e, this.workspace.zoom, this.updateFlows.bind(this));
+    // if (this.component) {
+    //   const {
+    //     zoom
+    //   } = this.workspace;
+    //   if (this.component.line) {
+    //     this.element.style.cursor = '';
+    //     const id = e.target.parentElement.id;
+    //     const target = this.getComponentById(this.components, id);
+    //     if (e.target.classList.contains('node')) {
+    //       this.component.line.stopMove(e, zoom);
+    //       this.component.line.completeConnect(target, e.target.dataset.index);
+    //       target.endLineConnect(e, this.component.line);
+    //       this.component.endLineConnect(e, target);
+    //     } else {
+    //       this.component.clearLine();
+    //     }
+    //   } else {
+    //     this.component.stopMove(e, zoom);
+    //   }
+    // }
+    console.log('flows', this.components);
+    // this.getFlowsFromComponents(this.components);
     this.component = null;
+  }
+
+  getFlowsFromComponents(components) {
+    (components[0]._id === 'workspace') && components.shift();
+    this.flows = components.map(comp => comp.schema && comp.schema);
+    console.log('flows', this.flows);
+    return this.flows;
+  }
+
+  updateFlows(schema, line) {
+    this.flows.map(flow => {
+      if (flow.id === schema.id) {
+        flow = schema;
+      }
+      if (line) {
+        if (flow.id === line.destination) {
+          flow.in.push(line.id); 
+        }
+      }
+    });
   }
 
   startMove(e) {
@@ -234,6 +361,7 @@ export default class Workspace extends Component {
       }
     });
     this.renderComponents(this.flows);
+    this.ac(this.parent, this.element);
     return [this.parent, new Tools({
       zoom: this.zoom.bind(this),
       reset: this.reset.bind(this)
@@ -241,8 +369,12 @@ export default class Workspace extends Component {
   }
 
   renderComponents(flows) {
-    this.parent.innerHTML = '';
-    this.ac(this.parent, [this.element, flows.map((component) => this.placeComponent(component))]);
+    this.element.remove();
+    flows.forEach(schema => {
+      const component = Drawables.createComponent(schema.type, this.element, schema);
+      this.components.push(component);
+      component.build();
+    });
   }
 
   // Provide options for deleting and editing the components
@@ -264,7 +396,6 @@ export default class Workspace extends Component {
           id: 'items'
         }, value));
         this.ac(this.parent.parentElement, this.menuOptions);
-        // document.getElementById(this.component._id).parentElement.parentElement.appendChild(this.menuOptions);
       } else {
         let id = e.target.parentElement.id;
         this.flows.map(comp => {
@@ -304,7 +435,6 @@ export default class Workspace extends Component {
           id: 'items'
         }, value));
         this.ac(this.parent.parentElement, this.menuOptions);
-        // document.getElementById(this.component._id).parentElement.parentElement.appendChild(this.menuOptions);
       }
     }
   }

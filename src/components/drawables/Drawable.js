@@ -34,6 +34,7 @@ export default class Drawable extends Component {
         ...options[this.schema.type]
       }
     }
+    this.modalOptions;
     this.modal = null;
   }
 
@@ -64,7 +65,7 @@ export default class Drawable extends Component {
     super.stopMove(e);
   }
 
-  openModal(elem, options = {}) {
+  openModal(elem, options) {
     this.modal = new Modal(this.schema, options).open();
     this.ac(elem, this.modal);
   }

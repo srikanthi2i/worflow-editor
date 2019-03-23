@@ -4,8 +4,8 @@ export default class Stroke extends Drawable {
   static schema(...extend) {
     return Drawable.schema({
       points: [{
-        x: 100,
-        y: 100
+        x: 0,
+        y: 0
       }],
       label: '',
       type: 'stroke'
@@ -80,6 +80,9 @@ export default class Stroke extends Drawable {
       });
       const pseudoPath = path.cloneNode(true);
       this.ce(pseudoPath, {
+        on: {
+          mouseover: this.hover.bind(this)
+        },
         nativeStyle: {
           stroke: 'transparent',
           strokeWidth: 10
@@ -175,13 +178,18 @@ export default class Stroke extends Drawable {
       width,
       height
     } = this.design;
+    this.schema.points = [{ x: 0, y: 0}];
     return this.ce(this.getSVGTag('svg'), {
       width: width * scale,
       height: height * scale
     }, this.getStroke(scale));
   }
 
-  build(isShapeConnect = false) {
+  build(node, offsetAxis) {
+    if (node) {
+      this.setPosition(node);
+      this.offsetAxis = offsetAxis;
+    }
     const {
       id,
       position,
@@ -207,12 +215,8 @@ export default class Stroke extends Drawable {
         innerHTML: label
       }
     }));
-    if (isShapeConnect) {
-      const parent = this.parent.getElementsByClassName('connect-lines')[0];
-      this.ac(parent, this.element);
-    } else {
-      this.ac(this.parent, this.element);
-    }
+    // const parent = this.parent.getElementsByClassName('connect-lines')[0];
+    this.ac(this.parent.firstChild, this.element);
     return this.element;
   }
 
@@ -268,14 +272,9 @@ export default class Stroke extends Drawable {
     }
   }
 
-  redraw(animate) {
+  redraw() {
     const clone = this.element.parentElement;
     this.element.remove();
-    if (animate) {
-      this.design.strokeDasharray = '5,5';
-    } else {
-      this.design.strokeDasharray = 'none';
-    }
     this.build();
     this.ac(clone, this.element);
   }
@@ -300,11 +299,52 @@ export default class Stroke extends Drawable {
   trackMove(e, zoom) {
     const current = this.getCurrentPos(e, zoom);
     this.setPoints(this.getMovedDistance(current, this.initial), e, zoom);
-    this.redraw(true);
+    this.redraw();
   }
 
   stopMove(e, zoom) {
+    console.log('e', e);
     super.stopMove(e);
     this.redraw();
+  }
+
+  completeConnect(target, nodeIndex) {
+    const {
+      x,
+      y
+    } = target.schema.position;
+    const {
+      x: offX,
+      y: offY
+    } = target.nodes[nodeIndex];
+    const points = this.schema.points;
+    const lastIndex = points.length - 1;
+    let lastPoint = {
+      ...points[lastIndex]
+    };
+    let {
+      x: mx,
+      y: my
+    } = this.getLineEndPoint();
+    // mx = mx - x + offX;
+    // my = my - y + offY;
+    let direction = 0 < lastPoint.y ? 'down' : 'up';;
+    if (lastPoint.x) {
+      direction = 0 < lastPoint.x ? 'right' : 'left';
+    }
+  }
+
+  getLineEndPoint() {
+    return this.schema.points.reduce((acc, point) => {
+      acc.x += point.x;
+      acc.y += point.y;
+      return acc;
+    }, {
+      ...this.schema.position
+    });
+  }
+
+  hover(e) {
+    e.target.style.cursor = 'pointer';
   }
 }

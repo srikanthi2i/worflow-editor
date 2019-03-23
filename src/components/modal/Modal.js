@@ -1,24 +1,18 @@
 import Base from '../base/Base';
-import Select from '../BasicComponents/Select';
+import Select from '../FieldComponents/Select';
 import * as CommonUtils from '../Common/CommonUtils';
-import Textfield from '../BasicComponents/TextField';
-import TextArea from '../BasicComponents/TextArea';
-import CheckBox from '../BasicComponents/CheckBox';
-import Radio from '../BasicComponents/Radio';
-import Error from '../BasicComponents/Error';
+import Textfield from '../FieldComponents/TextField';
+import TextArea from '../FieldComponents/TextArea';
+import CheckBox from '../FieldComponents/CheckBox';
+import Radio from '../FieldComponents/Radio';
+import Error from '../FieldComponents/Error';
 import EventEmitter from '../EventEmitter/EventEmitter';
-import ace from 'ace-builds';
 import './modal.css';
 export default class Modal extends Base {
   constructor(component, options) {
     super();
     this.eventEmitter = EventEmitter;
-    let head = document.getElementsByTagName('head')[0];
-    let theScript = document.createElement('script');
-    theScript.type = 'text/javascript';
-    theScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js';
-    theScript.onload = this.initAce.bind(this);
-    head.appendChild(theScript);
+    this.loadAceJs();
     this.component = component;
     this.options = options;
     this.clone = {
@@ -51,6 +45,15 @@ export default class Modal extends Base {
       "tabSize": 2
     });
     editor.getSession().on('change', function () {});
+  }
+
+  loadAceJs() {
+    let head = document.getElementsByTagName('head')[0];
+    let theScript = document.createElement('script');
+    theScript.type = 'text/javascript';
+    theScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js';
+    theScript.onload = this.initAce.bind(this);
+    head.appendChild(theScript);
   }
 
   open() {
@@ -152,7 +155,7 @@ export default class Modal extends Base {
     this.tabContent.replaceWith(this.getTabContent(element.dataset.tab));
     ace.edit(this.editor);
     if (element.dataset.tab === 'data') {
-      this.renderCurrentBasicComponent(this.options[0]);
+      // this.renderCurrentBasicComponent(this.options && this.options[0]);
     }
     // For populating component custom
     if (document.getElementById('customKeys')) {
@@ -286,44 +289,7 @@ export default class Modal extends Base {
               }
             }),
             this.editor
-          ])),
-          this.ce('div', {
-            style: '  display:flex;'
-          }, [
-            this.ce('span', {
-              id: 'previousButton',
-              style: 'float:left;',
-              class: 'nextButton',
-              keys: {
-                innerHTML: '&#9666;'
-              },
-              on: {
-                click: this.loadPreviousComponent.bind(this)
-              }
-            }),
-            this.ce('span', {
-              id: 'paginationContent',
-              style: ' margin:auto;',
-              keys: {
-                innerHTML: `${this.currentBasicComponentPosition + 1} out of ${this.options.length }`
-              }
-            }),
-            this.ce('span', {
-              id: 'nextButton',
-              style: 'float:right;',
-
-              class: 'nextButton',
-              keys: {
-                innerHTML: '&#9656;'
-              },
-              on: {
-                click: this.loadNextComponent.bind(this)
-              }
-            })
-          ]),
-          this.ce('div', {
-            id: 'componentType'
-          })
+          ]))
         ])
     } else {
       this.tabContent = this.ce('div', {},

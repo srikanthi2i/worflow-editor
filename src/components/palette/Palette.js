@@ -39,24 +39,29 @@ export default class Palette extends Base {
   }
 
   getPaletteItems() {
-    return Object.keys(Drawables.categories).map(category => this.ce('div', {
-      class: 'category'
-    }, [
-      this.ce('div', {
-        class: 'title',
-        keys: {
-          innerHTML: category
-        }
-      }),
-      this.ce('div', {
-        class: 'content'
-      },
-        Object.keys(Drawables.categories[category]).map(comp => this.ce('div', {
-          id: comp,
-          class: 'icon',
-          draggable: true
-        }, new Drawables.components[comp]().getIcon())))
-    ]));
+    return Object.keys(Drawables.categories).map(category => {
+      if (category === 'strokes') {
+        return;
+      }
+      return this.ce('div', {
+        class: 'category'
+      }, [
+        this.ce('div', {
+          class: 'title',
+          keys: {
+            innerHTML: category
+          }
+        }),
+        this.ce('div', {
+            class: 'content'
+          },
+          Object.keys(Drawables.categories[category]).map(comp => this.ce('div', {
+            id: comp,
+            class: 'icon',
+            draggable: true
+          }, new Drawables.components[comp]().getIcon())))
+      ])
+    });
   }
 
   create() {
