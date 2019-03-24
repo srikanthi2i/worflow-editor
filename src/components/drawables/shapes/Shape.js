@@ -26,6 +26,7 @@ export default class Shape extends Drawable {
 
   constructor(elem, schema, options) {
     super(elem, schema, options);
+    this.component;
   }
 
   get baseSchema() {
@@ -104,24 +105,20 @@ export default class Shape extends Drawable {
     }, this.getShape(scale));
   }
 
-  enableContextMenu(cb, key, id) {
+  menuOptions(cb, key, id) {
     const editMenu = (this.ce('li', {
       on: {
-        click: this.editMenu.bind(this)
+        click: this.doubleClick.bind(this)
       },
       keys: {
         innerHTML: "Edit"
       }
     }));
     if (key === 'component') {
-      return [editMenu, super.enableContextMenu(cb, key, id)];
+      return [editMenu, super.menuOptions(cb, key, id)];
     } else {
-      return [super.enableContextMenu(cb, key, id)];
+      return [super.menuOptions(cb, key, id)];
     }
-  }
-
-  editMenu() {
-    this.openModal(this.parent.parentElement, this.modalOptions);
   }
 
   build(modal) {
@@ -202,7 +199,7 @@ export default class Shape extends Drawable {
   }
 
   doubleClick(e) {
-    this.openModal(this.parent.parentElement, this.modalOptions);
+    this.openModal(this.parent.parentElement.parentElement, this.modalOptions);
   }
 
   showNodes(e) {
@@ -248,7 +245,7 @@ export default class Shape extends Drawable {
 
   startMove(e, zoom) {
     if (e.target.classList.contains('node')) {
-      this.element.style.cursor = 'crosshair';
+      this.parent.style.cursor = 'crosshair';
       this.beginLineConnect(e);
       this.line.startMove(e, zoom);
     } else {
@@ -256,15 +253,21 @@ export default class Shape extends Drawable {
     }
   }
 
-  stopMove(e, zoom, cb) {
-    if (e.target.classList.contains('node')) {
-      this.element.style.cursor = '';
-      this.endLineConnect(e);
+  trackMove(e, zoom) {
+    if (this.line) {
+      this.line.trackMove(e, zoom);
+    } else {
+      super.trackMove(e, zoom);
+    }
+  }
+
+  stopMove(e, zoom) {
+    if (this.line) {
+      this.parent.style.cursor = '';
       this.line.stopMove(e, zoom);
-      cb({...this.schema}, {...this.line.schema});
+      this.endLineConnect(e);
     } else {
       super.stopMove(e, zoom);
-      cb(this.schema);
     }
   }
 
@@ -288,18 +291,10 @@ export default class Shape extends Drawable {
   }
 
   endLineConnect(e) {
-    if (this.line) {
-      this.line.schema.destination = component._id;
+    if (e.target.classList.contains('node')) {
       this.schema.out.push(this.line.schema);
     } else {
-      this.schema.in.push({
-        source: component.schema._id
-      });
+      this.line.element.remove();
     }
-  }
-
-  clearLine() {
-    this.line.element.remove();
-    this.line = null;
   }
 }

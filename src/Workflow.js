@@ -5,19 +5,20 @@ import './workflow.css';
 
 export default class Workflow extends Base {
 
-  constructor(elem, schema) {
+  constructor(elem, schema, options) {
     super();
-    this.element = elem;
+    this.parent = elem;
     this.schema = schema;
+    this.options = options;
   }
 
   create() {
-    this.element.appendChild(this.ce('div', {
-      id: 'workflow',
-      style: 'background: #fff;'
+    this.element = this.ce('div', {
+      id: 'workflow'
     }, [
       new Palette().create(),
-      new Workspace(this.schema).create()
-    ]));
+      new Workspace(this.schema, this.options).create()
+    ]);
+    this.ac(this.parent, this.element);
   }
 }

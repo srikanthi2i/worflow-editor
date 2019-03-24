@@ -1,6 +1,7 @@
 #workflow {
   position: relative;
   display: block;
+  background: #fff;
   width: calc(100% - 10px);
   height: 600px;
   padding: 5px;

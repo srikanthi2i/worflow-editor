@@ -4,30 +4,29 @@ export default class Component extends Base {
   constructor() {
     super();
     this.element = null;
-    this.initial = {};
+    this.initial = null;
   }
 
-  getMovedDistance(e, initial) {
+  getMovedDistance(pos, initial) {
     return {
-      x: Math.round(e.x - initial.x),
-      y: Math.round(e.y - initial.y)
+      x: Math.round(pos.x - initial.x),
+      y: Math.round(pos.y - initial.y)
     };
   }
 
-  setInitialPos(e, zoom = 1) {
+  setInitialPos(pos) {
     this.initial = {
-      x: e.x * zoom,
-      y: e.y * zoom
+      ...pos
     };
   }
 
-  startMove(e, zoom) {
+  setUpMove(pos) {
     this.element.style.cursor = 'grabbing';
-    this.setInitialPos(e, zoom);
+    this.setInitialPos(pos);
   }
 
-  stopMove(e, zoom) {
+  endMove() {
     this.element.style.cursor = 'default';
-    this.initial = {};
+    this.initial = null;
   }
 }

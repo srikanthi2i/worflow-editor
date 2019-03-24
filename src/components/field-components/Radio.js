@@ -1,6 +1,5 @@
 import Base from '../base/Base';
-import EventEmitter from '../EventEmitter/EventEmitter';
-import * as CommonUtils from '../Common/CommonUtils';
+import EventEmitter from '../event-emitter/EventEmitter';
 import '../modal/modal.css';
 
 export default class Radio extends Base {
@@ -132,7 +131,7 @@ export default class Radio extends Base {
   //Populate radio button based on the given values.
   generateRadioButton() {
     let radioContent = document.getElementById('radioContent');
-    CommonUtils.removeAllChildren(radioContent);
+    this.removeAllChildren(radioContent);
     Object.keys(this.radio).map(item => {
       let value =
         this.ce('span', {

@@ -1,40 +1,41 @@
 import Base from '../base/Base';
-import Select from '../FieldComponents/Select';
-import * as CommonUtils from '../Common/CommonUtils';
-import Textfield from '../FieldComponents/TextField';
-import TextArea from '../FieldComponents/TextArea';
-import CheckBox from '../FieldComponents/CheckBox';
-import Radio from '../FieldComponents/Radio';
-import Error from '../FieldComponents/Error';
-import EventEmitter from '../EventEmitter/EventEmitter';
+import EventEmitter from '../event-emitter/EventEmitter';
 import './modal.css';
+
 export default class Modal extends Base {
   constructor(component, options) {
     super();
-    this.eventEmitter = EventEmitter;
-    this.loadAceJs();
     this.component = component;
     this.options = options;
+    this.events = EventEmitter;
     this.clone = {
       ...this.component
     };
     this.currentTab;
     this.keys = {};
+    this.modal;
+    this.prevActiveTab;
+    this.prevCustomKey = '';
+    this.getTabContent('display');
+    this.loadAceJs();
+  }
+
+  loadAceJs() {
+    let head = document.getElementsByTagName('head')[0];
+    let script = this.ce('script', {
+      type: 'text/javascript',
+      src: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js',
+      on: {
+        load: this.initAce.bind(this)
+      }
+    });
+    this.ac(head, script);
     this.editor = this.ce('div', {
       id: 'editor',
       keys: {
         innerHTML: "{}"
       }
     });
-    this.getTabContent('display');
-    this.modal;
-    this.previousActive;
-    this.previousKey = '';
-    this.urlResponse = {};
-    this.components = [];
-    this.dataPathResponse;
-    this.currentBasicComponentPosition = 0;
-    this.eventEmitter.subscribe('deleteComponent', this.deleteComponent.bind(this));
   }
 
   initAce() {
@@ -47,28 +48,19 @@ export default class Modal extends Base {
     editor.getSession().on('change', function () {});
   }
 
-  loadAceJs() {
-    let head = document.getElementsByTagName('head')[0];
-    let theScript = document.createElement('script');
-    theScript.type = 'text/javascript';
-    theScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js';
-    theScript.onload = this.initAce.bind(this);
-    head.appendChild(theScript);
-  }
-
   open() {
-    this.previousActive = "display";
+    this.prevActiveTab = "display";
     this.modal = this.ce('div', {
       class: 'modal',
     }, [this.ce('div', {
-        class: 'modalStyle',
+        class: 'modal-close',
         on: {
           click: this.close.bind(this)
         }
       }, this.ce('span', {
         style: 'color: black; cursor: pointer;',
         keys: {
-          innerHTML: '&#8608;'
+          innerHTML: '&#8609;'
         }
       })),
       this.ce('div', {
@@ -147,18 +139,15 @@ export default class Modal extends Base {
     } else if (e.target.parentElement.classList.contains('tab-header')) {
       element = e.target.parentElement;
     }
-    let selectedOption = document.getElementById(this.previousActive);
+    let selectedOption = this.ge(this.prevActiveTab);
     selectedOption.classList.remove('active');
-    this.previousActive = element.dataset.tab;
-    let activeOption = document.getElementById(element.dataset.tab);
+    this.prevActiveTab = element.dataset.tab;
+    let activeOption = this.ge(element.dataset.tab);
     activeOption.classList = "tab-header active"
     this.tabContent.replaceWith(this.getTabContent(element.dataset.tab));
     ace.edit(this.editor);
-    if (element.dataset.tab === 'data') {
-      // this.renderCurrentBasicComponent(this.options && this.options[0]);
-    }
     // For populating component custom
-    if (document.getElementById('customKeys')) {
+    if (this.ge('customKeys')) {
       if (this.component['custom']) {
         this.keys = {
           ...this.component['custom']
@@ -166,59 +155,6 @@ export default class Modal extends Base {
         this.showKeys(this);
       }
     }
-  }
-
-  deleteComponent(e) {
-    this.options.map((item, index) => {
-      if (item.name === e.detail.option.name) {
-        this.options.splice(index, 1);
-      }
-    })
-    this.close();
-  }
-
-  renderCurrentBasicComponent(item) {
-    if (item.name === 'Select') {
-      new Select(this.component, item).enableSelect();
-    } else if (item.name === 'Textfield') {
-      new Textfield(this.component, item).enableTextFieldComponent();
-    } else if (item.name === 'Textarea') {
-      new TextArea(this.component, item).enableTextAreaComponent();
-    } else if (item.name === 'CheckBox') {
-      new CheckBox(this.component, item).enableCheckBoxComponent();
-    } else if (item.name === 'radio') {
-      new Radio(this.component, item).enableRadioComponent();
-    } else {
-      new Error(this.component, item).showErrorContent();
-    }
-    if (this.currentBasicComponentPosition === 0) {
-      document.getElementById('previousButton').style.display = "none";
-    }
-    if (this.currentBasicComponentPosition === this.options.length - 1) {
-      document.getElementById('nextButton').style.display = "none";
-    }
-    if (this.currentBasicComponentPosition !== 0) {
-      document.getElementById('previousButton').style.display = '';
-    }
-    if (this.currentBasicComponentPosition !== this.options.length - 1) {
-      document.getElementById('nextButton').style.display = '';
-    }
-  }
-
-  loadPreviousComponent(e) {
-    let selectOption = document.getElementById('componentType')
-    CommonUtils.removeAllChildren(selectOption);
-    this.currentBasicComponentPosition = this.currentBasicComponentPosition - 1;
-    this.renderCurrentBasicComponent(this.options[this.currentBasicComponentPosition]);
-    document.getElementById('paginationContent').innerHTML = `${this.currentBasicComponentPosition + 1} out of ${this.options.length }`;
-  }
-
-  loadNextComponent(e) {
-    let selectOption = document.getElementById('componentType')
-    CommonUtils.removeAllChildren(selectOption);
-    this.currentBasicComponentPosition = this.currentBasicComponentPosition + 1;
-    this.renderCurrentBasicComponent(this.options[this.currentBasicComponentPosition]);
-    document.getElementById('paginationContent').innerHTML = `${this.currentBasicComponentPosition + 1} out of ${this.options.length }`;
   }
 
   getTabContent(tab) {
@@ -342,20 +278,20 @@ export default class Modal extends Base {
   checkDuplicateKey(e) {
     if (this.keys &&
       Object.keys(this.keys).indexOf(e.target.value) !== -1) {
-      document.getElementById('keyLabel').value = '';
-      document.getElementById('valueLabel').value = '';
+      this.ge('keyLabel').value = '';
+      this.ge('valueLabel').value = '';
     }
   }
 
   //Change value for custom value
   changeCustomValue(e) {
-    document.getElementById('valueLabel').value = e.target.value;
+    this.ge('valueLabel').value = e.target.value;
   }
 
   // Enable save button
   enableSubmit() {
     let buttons;
-    if (!document.getElementById('saveButton')) {
+    if (!this.ge('saveButton')) {
       buttons = this.ce('div', {},
         [this.ce('button', {
             class: 'saveButton',
@@ -405,13 +341,13 @@ export default class Modal extends Base {
 
   // Add the key and value
   addKey() {
-    if (document.getElementById('keyLabel').value !== '' &&
-      document.getElementById('valueLabel').value !== '') {
-      const key = document.getElementById('keyLabel').value;
-      const value = document.getElementById('valueLabel').value;
+    if (this.ge('keyLabel').value !== '' &&
+      this.ge('valueLabel').value !== '') {
+      const key = this.ge('keyLabel').value;
+      const value = this.ge('valueLabel').value;
       this.keys[key] = value;
-      document.getElementById('keyLabel').value = '';
-      document.getElementById('valueLabel').value = '';
+      this.ge('keyLabel').value = '';
+      this.ge('valueLabel').value = '';
       this.showKeys();
     }
   }
@@ -449,27 +385,27 @@ export default class Modal extends Base {
             this.ce('button', {
               class: 'deleteKey',
               keys: {
-                innerHTML: "&#10134;",
+                innerHTML: "+",
               },
               on: {
                 click: this.deleteKey.bind(this)
               }
             })
           ])
-      if (document.getElementById(item)) {
-        document.getElementById(item).remove();
+      if (this.ge(item)) {
+        this.ge(item).remove();
       }
-      document.getElementById('allCustom').appendChild(labels);
+      this.ge('allCustom').appendChild(labels);
     })
   }
 
   saveKeys() {
     this.component.custom = this.keys;
     this.component.key = this.clone.key;
-    this.eventEmitter.emit('addCustomKeys', {
+    this.events.emit('addCustomKeys', {
       component: this.component,
     });
-    this.eventEmitter.emit('componentUpdate', {
+    this.events.emit('componentUpdate', {
       componentId: this.component.id,
       value: this.component.label
     });
@@ -479,22 +415,22 @@ export default class Modal extends Base {
 
   // Stores the previous value to the global variables for updating
   updateKey(e) {
-    this.previousKey = e.target.value;
+    this.prevCustomKey = e.target.value;
   }
 
   // Update the given key with the existing key
   saveUpdatedKey(e) {
     if (e.target.value === '') {
-      e.target.value = this.previousKey;
+      e.target.value = this.prevCustomKey;
     } else {
       if (Object.keys(this.keys).indexOf(e.target.value) !== -1) {
-        e.target.value = this.previousKey;
+        e.target.value = this.prevCustomKey;
       } else {
-        const value = this.keys[this.previousKey];
-        if (delete this.keys[this.previousKey]) {
+        const value = this.keys[this.prevCustomKey];
+        if (delete this.keys[this.prevCustomKey]) {
           this.keys[e.target.value] = value;
         }
-        document.getElementById(this.previousKey).id = e.target.value;
+        this.ge(this.prevCustomKey).id = e.target.value;
       }
     }
   }
@@ -507,7 +443,7 @@ export default class Modal extends Base {
   // Allows to delete a particular row
   deleteKey(e) {
     if (delete this.keys[e.target.parentElement.id]) {
-      document.getElementById(e.target.parentElement.id).remove();
+      this.ge(e.target.parentElement.id).remove();
     }
   }
 
@@ -519,28 +455,13 @@ export default class Modal extends Base {
   // Update the component label
   updateLabel(e, key) {
     let componentId = this.component.id;
-    let child = document.getElementById(componentId).children[1].children[0];
-    let componentType = document.getElementById(`${this.component.id}-key`);
+    let child = this.ge(componentId).children[1].children[0];
+    let componentType = this.ge(`${this.component.id}-key`);
     let value = e ? e.target.value : key;
     componentType.value = this.makeFirstLetterLowerCase(value);
     child.innerHTML = e ? e.target.value : key;
     child.title = e ? e.target.value : key;
     this.component.label = e ? e.target.value : key;
     this.clone.key = e ? e.target.value : key;
-  }
-
-  // Add options for basic components
-  enableBasicComponent() {
-    const optionsValues = ['Select', 'Text field', 'Text area', 'Radio'];
-    let options;
-    optionsValues.map(item => {
-      options = this.ce('option', {
-        keys: {
-          innerHTML: item,
-          value: item
-        },
-      })
-      document.getElementById('BasicComponentSelect').appendChild(options)
-    })
   }
 }

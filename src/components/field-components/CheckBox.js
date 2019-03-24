@@ -1,6 +1,5 @@
 import Base from '../base/Base';
-import EventEmitter from '../EventEmitter/EventEmitter';
-import * as CommonUtils from '../Common/CommonUtils';
+import EventEmitter from '../event-emitter/EventEmitter';
 import '../modal/modal.css';
 
 export default class CheckBox extends Base {
@@ -97,7 +96,7 @@ export default class CheckBox extends Base {
     if (e.target.value !== '') {
       this.checkBoxValues.indexOf(e.target.value) === -1 && this.checkBoxValues.push(e.target.value)
       let checkBoxContent = document.getElementById('checkBoxContent');
-      CommonUtils.removeAllChildren(checkBoxContent);
+      this.removeAllChildren(checkBoxContent);
       e.target.value = '';
       this.checkBoxValues.map(item => {
         let value = this.ce('span', {

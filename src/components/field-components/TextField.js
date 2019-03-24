@@ -1,5 +1,5 @@
 import Base from '../base/Base';
-import EventEmitter from '../EventEmitter/EventEmitter';
+import EventEmitter from '../event-emitter/EventEmitter';
 import '../modal/modal.css';
 
 export default class TextField extends Base {

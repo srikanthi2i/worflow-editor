@@ -291,21 +291,15 @@ export default class Stroke extends Drawable {
     // Todo:::
   }
 
-  startMove(e, zoom) {
-    const current = this.getCurrentPos(e, zoom);
-    this.setInitialPos(current);
-  }
-
   trackMove(e, zoom) {
-    const current = this.getCurrentPos(e, zoom);
-    this.setPoints(this.getMovedDistance(current, this.initial), e, zoom);
+    const moved = this.getMovedDistance(this.getCurrentPos(e, zoom), this.initial);
+    this.setPoints(moved, e, zoom);
     this.redraw();
   }
-
+  
   stopMove(e, zoom) {
-    console.log('e', e);
-    super.stopMove(e);
     this.redraw();
+    this.endMove();
   }
 
   completeConnect(target, nodeIndex) {

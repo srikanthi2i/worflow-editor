@@ -6,8 +6,9 @@ import Tools from './Tools';
 import './workspace.css';
 
 export default class Workspace extends Component {
-  constructor(schema, options) {
+  constructor(elem, schema, options) {
     super(schema, options);
+    this.root = elem;
     this._id = 'workspace';
     this.components = [];
     this.workspace = {
@@ -228,87 +229,59 @@ export default class Workspace extends Component {
   mouseDown(e) {
     e.preventDefault();
     // check mouse click button is left
-    if (e.which !== 1) {
+    if (e.which !== 1 || this.menuOptions) {
       return;
     }
     const id = e.target.parentElement.id;
     if (id === 'workspace') {
-      this.component = this;
+      this.startMove(e);
     } else if (id.indexOf('flow') === 0) {
       this.component = this.getComponentById(this.components, id);
+      this.component && this.component.startMove(e, this.workspace.zoom);
     }
-    this.component && this.component.startMove(e, this.workspace.zoom);
-    // if (this.component) {
-    //   if (e.target.classList.contains('node')) {
-    //     this.element.style.cursor = 'crosshair';
-    //     this.component.beginLineConnect(e);
-    //     this.component.line.startMove(e, zoom);
-    //   } else {
-    //     this.component.startMove(e, zoom);
-    //   }
-    // }
   }
 
   mouseMove(e) {
-    this.component && this.component.trackMove(e, this.workspace.zoom);
-    // if (this.component) {
-    //   if (this.component.line) {
-    //     this.component.line.trackMove(e, zoom);
-    //   } else {
-    //     this.component.trackMove(e, zoom);
-    //   }
-    // }
+    if (this.menuOptions) {
+      return;
+    }
+    if (this.component) {
+      this.component.trackMove(e, this.workspace.zoom);
+    } else {
+      this.initial && this.trackMove(e);
+    }
   }
 
   mouseEnd(e) {
-    this.component && this.component.stopMove(e, this.workspace.zoom, this.updateFlows.bind(this));
-    // if (this.component) {
-    //   const {
-    //     zoom
-    //   } = this.workspace;
-    //   if (this.component.line) {
-    //     this.element.style.cursor = '';
-    //     const id = e.target.parentElement.id;
-    //     const target = this.getComponentById(this.components, id);
-    //     if (e.target.classList.contains('node')) {
-    //       this.component.line.stopMove(e, zoom);
-    //       this.component.line.completeConnect(target, e.target.dataset.index);
-    //       target.endLineConnect(e, this.component.line);
-    //       this.component.endLineConnect(e, target);
-    //     } else {
-    //       this.component.clearLine();
-    //     }
-    //   } else {
-    //     this.component.stopMove(e, zoom);
-    //   }
-    // }
-    console.log('flows', this.components);
-    // this.getFlowsFromComponents(this.components);
-    this.component = null;
+    if (this.menuOptions) {
+      return;
+    }
+    if (this.component) {
+      this.component.stopMove(e, this.workspace.zoom);
+      this.updateFlowsByComponent(this.component);
+    } else {
+      this.initial && this.stopMove(e);
+    }
   }
 
-  getFlowsFromComponents(components) {
-    (components[0]._id === 'workspace') && components.shift();
-    this.flows = components.map(comp => comp.schema && comp.schema);
-    console.log('flows', this.flows);
-    return this.flows;
-  }
-
-  updateFlows(schema, line) {
+  updateFlowsByComponent(comp) {
+    const { schema, line } = comp;
     this.flows.map(flow => {
       if (flow.id === schema.id) {
         flow = schema;
       }
       if (line) {
-        if (flow.id === line.destination) {
-          flow.in.push(line.id); 
+        if (flow.id === line.schema.destination) {
+          flow.in.push(line.schema.id); 
         }
       }
     });
+    this.component.line = null;
+    this.component = null;
   }
 
   startMove(e) {
-    super.startMove(e);
+    this.setUpMove({ x: e.x, y: e.y });
     this.element.style.transition = 'none';
     this.element.style.transitionTimingFunction = 'unset';
   }
@@ -317,16 +290,16 @@ export default class Workspace extends Component {
     const {
       x,
       y
-    } = this.getMovedDistance(e, this.initial);
+    } = this.getMovedDistance({ x: e.x, y: e.y }, this.initial);
     this.workspace.x += x;
     this.workspace.y += y;
-    this.setInitialPos(e);
+    this.setInitialPos({ x: e.x, y: e.y });
     this.element.style.transform =
       `translate(${this.workspace.x}px, ${this.workspace.y}px) scale(${this.workspace.zoom})`;
   }
 
   stopMove(e) {
-    super.stopMove(e);
+    this.endMove(e);
     this.element.style.transition = 'transform 0.3s';
     this.element.style.transitionTimingFunction = 'ease-in-out';
   }
@@ -384,18 +357,12 @@ export default class Workspace extends Component {
     if (e.target.id !== "sheet") {
       const id = e.target.parentElement.id;
       this.component = this.getComponentById(this.components, id);
+      let value;
       if (this.component) {
         const removeComponent = () => {
           this.flows.splice(this.flows.indexOf(this.component), 1);
         };
-        let value = this.component.enableContextMenu(removeComponent, 'component');
-        this.menuOptions = this.ce('div', {
-          id: 'menuOptions',
-          style: `transform: translate(${e.x}px, ${e.y}px)`
-        }, this.ce('ul', {
-          id: 'items'
-        }, value));
-        this.ac(this.parent.parentElement, this.menuOptions);
+        value = this.component.menuOptions(removeComponent, 'component');
       } else {
         let id = e.target.parentElement.id;
         this.flows.map(comp => {
@@ -427,20 +394,25 @@ export default class Workspace extends Component {
             }
           })
         };
-        let value = this.component.enableContextMenu(removeLine, 'line', id);
-        this.menuOptions = this.ce('div', {
-          id: 'menuOptions',
-          style: `transform: translate(${e.x}px, ${e.y}px)`
-        }, this.ce('ul', {
-          id: 'items'
-        }, value));
-        this.ac(this.parent.parentElement, this.menuOptions);
+        value = this.component.menuOptions(removeLine, 'line', id);
       }
+      this.menuOptions = this.ce('div', {
+        id: 'menuOptions',
+        style: `transform: translate(${e.x}px, ${e.y}px)`,
+        on: {
+          click: this.closeMenuOptions.bind(this)
+        }
+      }, this.ce('ul', {
+        id: 'items'
+      }, value));
+      this.ac(this.parent.parentElement, this.menuOptions);
     }
   }
 
   // Close the menu options while clicking other than components.
   closeMenuOptions(e) {
     this.menuOptions && this.menuOptions.remove();
+    this.menuOptions = null;
+    this.component = null;
   }
 }

@@ -50,27 +50,28 @@ export default class Drawable extends Component {
   }
 
   startMove(e, zoom) {
-    const current = this.getCurrentPos(e, zoom);
-    super.startMove(current);
+    this.setUpMove(this.getCurrentPos(e, zoom));
   }
 
   trackMove(e, zoom) {
-    const current = this.getCurrentPos(e, zoom);
-    this.setPosition(this.getMovedDistance(current, this.initial));
-    this.setInitialPos(current);
-    this.redraw();
+    const { x, y } = this.getMovedDistance(this.getCurrentPos(e, zoom), this.initial);
+    this.element.style.transform = `translate(${x}px, ${y}px)`;
   }
-
+  
   stopMove(e, zoom) {
-    super.stopMove(e);
+    this.element.style.transform = '';
+    const moved = this.getMovedDistance(this.getCurrentPos(e, zoom), this.initial);
+    this.setPosition(moved);
+    this.redraw();
+    this.endMove();
   }
-
+  
   openModal(elem, options) {
     this.modal = new Modal(this.schema, options).open();
     this.ac(elem, this.modal);
   }
 
-  enableContextMenu(cb, key, id) {
+  menuOptions(cb, key, id) {
     const deleteMenu = (this.ce('li', {
       on: {
         click: this.deleteMenu.bind(this, cb, key, id)
@@ -83,22 +84,7 @@ export default class Drawable extends Component {
   }
 
   deleteMenu(cb, key, id) {
-    if (key === 'component') {
-      if (document.getElementById(this.schema.id)) {
-        document.getElementById(this.schema.id).remove();
-        document.getElementById("menuOptions").remove();
-        if (this.modal) {
-          this.modal.remove();
-        }
-        cb();
-      }
-    } else {
-      document.getElementById(id).remove();
-      if (this.modal) {
-        this.modal.remove();
-      }
-      cb();
-    }
-  
+    key === 'component' ? this.element.remove() : this.ge(id).remove();
+    this.modal && this.modal.remove();
   }
 }

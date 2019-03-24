@@ -1,10 +1,6 @@
 import './base.css';
 
 export default class Base {
-  constructor() {
-
-  }
-
   randomString(prefix, an) {
     var len = 6;
     an = an && an.toLowerCase();
@@ -66,11 +62,13 @@ export default class Base {
     }
   }
 
-  getElementById(id) {
-    return document.getElementById(id);
+  ge(value, index) {
+    return index ? document.getElementsByClassName(value)[index] : document.getElementById(value);
   }
 
-  getElementsByClass(className) {
-    return document.getElementsByClassName(className);
+  removeAllChildren(item) {
+    while (item && item.firstChild) {
+      item.removeChild(item.firstChild);
+    }
   }
 }

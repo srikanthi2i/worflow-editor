@@ -1,6 +1,5 @@
 import Base from '../base/Base';
-import EventEmitter from '../EventEmitter/EventEmitter';
-import * as CommonUtils from '../Common/CommonUtils';
+import EventEmitter from '../event-emitter/EventEmitter';
 import '../modal/modal.css';
 
 export default class Select extends Base {
@@ -75,7 +74,7 @@ export default class Select extends Base {
   //Add options to the source type select drop down
   addOptions() {
     let selectOption = document.getElementById(`sourceTypeSelect${this.option.key ? `-${this.option.key}` : ''}`);
-    CommonUtils.removeAllChildren(selectOption);
+    this.removeAllChildren(selectOption);
     const optionsValues = ['URL', 'VALUES'];
     let options;
     optionsValues.map(item => {
@@ -239,7 +238,7 @@ export default class Select extends Base {
 
   addSelectOptionsByValues() {
     let selectOption = document.getElementById('responseSelectValues');
-    CommonUtils.removeAllChildren(selectOption);
+    this.removeAllChildren(selectOption);
     this.dataPathResponse && Object.keys(this.dataPathResponse).map(item => {
       let value = this.ce('option', {
         keys: {
@@ -319,7 +318,7 @@ export default class Select extends Base {
   //Populate the url response with the given data path to the select.
   addSelectOptions() {
     let selectOption = document.getElementById('responseSelectValues');
-    CommonUtils.removeAllChildren(selectOption);
+    this.removeAllChildren(selectOption);
     this.dataPathResponse && this.dataPathResponse.map(item => {
       let value = this.ce('option', {
         keys: {
