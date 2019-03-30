@@ -1,16 +1,10 @@
-#sheet {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
 #workspace {
   position: relative;
   display: inline-block;
   width: 85%;
   height: 100%;
   background: #cdcdcd;
-  border: 1px solid;
+  border: 1px solid #ababaa;
   overflow: hidden;
 }
 
@@ -33,7 +27,17 @@
   cursor: crosshair;
 }
 
-#items {
+#menu-options {
+  position: absolute;
+  top: 0;
+  border: 1px solid #ababaa;
+  width: 150px;
+  background: #F9F9F9;
+  box-shadow: 3px 3px 2px #ababaa;
+  border-radius: 4px;
+}
+
+#menu-options>.items {
   list-style: none;
   margin: 0px;
   margin-top: 4px;
@@ -42,27 +46,35 @@
   padding-bottom: 3px;
   font-size: 17px;
   color: #333333;
-
 }
 
-#menuOptions {
-  position: absolute;
-  top: 0;
-  border: 1px solid #B2B2B2;
-  width: 150px;
-  background: #F9F9F9;
-  box-shadow: 3px 3px 2px #E9E9E9;
-  border-radius: 4px;
+#menu-options>.items:hover {
+  color: white;
+  background: #284570;
+  border-radius: 2px;
 }
 
-li {
+#menu-options>li {
   padding: 3px;
   padding-left: 10px;
 }
 
+.tool {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  top: 0;
+  right: 35px;
+}
 
-#items :hover {
-  color: white;
-  background: #284570;
-  border-radius: 2px;
+.reset-sheet {
+  top: 25px;
+}
+
+.zoom-in {
+  top: 55px;
+}
+
+.zoom-out {
+  top: 82px;
 }

@@ -1,4 +1,4 @@
-import Rhombus from "../shapes/Rhombus";
+import Rhombus from '../shapes/Rhombus';
 
 export default class Condition extends Rhombus {
   static schema() {
@@ -11,10 +11,6 @@ export default class Condition extends Rhombus {
 
   static design() {
     return Rhombus.design();
-  }
-
-  constructor(elem, schema, options) {
-    super(elem, schema, options);
   }
 
   get baseSchema() {

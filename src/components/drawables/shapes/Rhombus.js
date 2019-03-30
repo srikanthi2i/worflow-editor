@@ -13,10 +13,6 @@ export default class Rhombus extends Shape {
     return Shape.design(...extend);
   }
 
-  constructor(elem, schema, options) {
-    super(elem, schema, options);
-  }
-
   get baseSchema() {
     return Rhombus.schema();
   }
@@ -27,8 +23,8 @@ export default class Rhombus extends Shape {
 
   getShapePath({ x: mx, y: my }, scale) {
     const { width, height } = this.design;
-    let x = width*scale/2;
-    let y = height*scale/2;
-    return `M ${mx} ${y+my} l ${x} ${-y} l ${x} ${y} l ${-x} ${y} z`;
+    const x = width * scale / 2;
+    const y = height * scale / 2;
+    return `M ${mx} ${y + my} l ${x} ${-y} l ${x} ${y} l ${-x} ${y} z`;
   }
 }

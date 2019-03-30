@@ -10,15 +10,11 @@ export default class Dotted extends Stroke {
       type: 'dotted'
     }, ...extend);
   }
-  
+
   static design(...extend) {
     return Stroke.design({
       strokeDasharray: '5,5'
     }, ...extend);
-  }
-
-  constructor(elem, schema, options) {
-    super(elem, schema, options);
   }
 
   get baseSchema() {
@@ -38,10 +34,10 @@ export default class Dotted extends Stroke {
       x,
       y
     }) => {
-      lines.push(`M ${acc.x} ${acc.y} l ${x*scale} ${y*scale}`);
+      lines.push(`M ${acc.x} ${acc.y} l ${x * scale} ${y * scale}`);
       return {
-        x: acc.x + x*scale,
-        y: acc.y + y*scale
+        x: acc.x + x * scale,
+        y: acc.y + y * scale
       };
     }, {
       x: mx,

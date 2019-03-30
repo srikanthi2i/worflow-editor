@@ -1,3 +1,5 @@
- import Workflow from './Workflow'
+import Workflow  from './Workflow';
 
- new Workflow(document.getElementById('root'), '').create()
+new Workflow(document.getElementById('root'), '').create();
+
+export { Workflow };

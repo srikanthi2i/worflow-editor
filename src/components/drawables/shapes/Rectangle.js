@@ -15,10 +15,6 @@ export default class Rectangle extends Shape {
     }, ...extend);
   }
 
-  constructor(elem, schema, options) {
-    super(elem, schema, options);
-  }
-
   get baseSchema() {
     return Rectangle.schema();
   }
@@ -28,8 +24,9 @@ export default class Rectangle extends Shape {
   }
 
   get nodes() {
-    this._nodes = super.nodes.map(node => {
-      node.y && (node.y /= 2);
+    this._nodes = super.nodes;
+    this._nodes.every((node, i) => {
+      node.y && (this._nodes[i].y /= 2);
       return node;
     });
     return this._nodes;
@@ -37,8 +34,8 @@ export default class Rectangle extends Shape {
 
   getShapePath({ x: mx, y: my }, scale) {
     const { width, height } = this.design;
-    const x = width*scale;
-    const y = height*scale;
+    const x = width * scale;
+    const y = height * scale;
     return `M ${mx} ${my} l ${x} 0 l 0 ${y} l ${-x} 0 z`;
   }
 }

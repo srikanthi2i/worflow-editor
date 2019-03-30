@@ -13,10 +13,6 @@ export default class Action extends Rectangle {
     return Rectangle.design();
   }
 
-  constructor(elem, schema, options) {
-    super(elem, schema, options);
-  }
-
   get baseSchema() {
     return Action.schema();
   }

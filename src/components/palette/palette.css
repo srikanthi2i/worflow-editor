@@ -5,7 +5,7 @@
   height: 100%;
   vertical-align: top;
   background: #ffffff;
-  border: 1px solid;
+  border: 1px solid #ababaa;
   border-right: none;
 }
 
@@ -15,7 +15,7 @@
 
 .category .title {
   font-size: 1.5em;
-  background: #f3f3f3;
+  background: #e8e8e8;
   text-transform: capitalize;
   padding: 0.25em;
 }
@@ -29,7 +29,7 @@
   align-items: center;
   margin: 0.25em 0.25em 0 0;
   padding: 0.25em;
-  border: 1px solid #a9a9a9;
+  border: 1px solid #ababaa;
   width: 50px;
   height: 50px;
   vertical-align: top;

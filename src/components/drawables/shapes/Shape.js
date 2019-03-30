@@ -1,5 +1,5 @@
 import Drawable from '../Drawable';
-import { Drawables } from '..';
+import Drawables from '../Drawables';
 
 export default class Shape extends Drawable {
   static schema(...extend) {
@@ -26,7 +26,7 @@ export default class Shape extends Drawable {
 
   constructor(elem, schema, options) {
     super(elem, schema, options);
-    this.component;
+    this.component = null;
   }
 
   get baseSchema() {
@@ -39,21 +39,21 @@ export default class Shape extends Drawable {
 
   get nodes() {
     this._nodes = [{
-        x: 50,
-        y: 0
-      },
-      {
-        x: 100,
-        y: 50
-      },
-      {
-        x: 50,
-        y: 100
-      },
-      {
-        x: 0,
-        y: 50
-      }
+      x: 50,
+      y: 0
+    },
+    {
+      x: 100,
+      y: 50
+    },
+    {
+      x: 50,
+      y: 100
+    },
+    {
+      x: 0,
+      y: 50
+    }
     ];
     return this._nodes;
   }
@@ -79,7 +79,7 @@ export default class Shape extends Drawable {
       nativeStyle: {
         position: 'absolute'
       },
-      ['data-type']: this.schema.type
+      'data-type': this.schema.type
     }, this.ce(this.getSVGTag('path'), {
       id: 'path',
       class: 'path',
@@ -111,14 +111,13 @@ export default class Shape extends Drawable {
         click: this.doubleClick.bind(this)
       },
       keys: {
-        innerHTML: "Edit"
+        innerHTML: 'Edit'
       }
     }));
     if (key === 'component') {
       return [editMenu, super.menuOptions(cb, key, id)];
-    } else {
-      return [super.menuOptions(cb, key, id)];
     }
+    return [super.menuOptions(cb, key, id)];
   }
 
   build(modal) {
@@ -147,7 +146,7 @@ export default class Shape extends Drawable {
       nativeStyle: {
         textTransform: 'capitalize'
       },
-      class: 'textOverflowEllipsis',
+      class: 'ellipsis',
 
     }, [
       this.ce('span', {
@@ -158,10 +157,10 @@ export default class Shape extends Drawable {
         }
       })
     ]));
-    this.schema.out.length && this.schema.out.forEach(lineSchema => {
+    this.schema.out.length && this.schema.out.forEach((lineSchema) => {
       Drawables.createComponent('stroke', this.parent, lineSchema).build();
     });
-    modal && this.openModal(modal, this.modalOptions);
+    modal && this.openModal(modal.parentElement, this.modalOptions);
     this.ac(this.parent, this.element);
     return this.element;
   }
@@ -192,10 +191,7 @@ export default class Shape extends Drawable {
     } = this.design;
     x /= 2;
     y /= 2;
-    return {
-      x,
-      y
-    };
+    return { x, y };
   }
 
   doubleClick(e) {
@@ -208,21 +204,19 @@ export default class Shape extends Drawable {
         x,
         y
       } = this.schema.position;
-      this.tempNodes = this.nodes.map((point, i) => {
-        return this.ce(this.getSVGTag('circle'), {
-          on: {
-            mouseover: this.highlightNode.bind(this),
-            mouseout: this.highlightNode.bind(this)
-          },
-          class: 'node',
-          ['data-index']: i,
-          cx: `${x+point.x}`,
-          cy: `${y+point.y}`,
-          r: "5",
-          ['stroke-width']: "1",
-          fill: "blue"
-        });
-      });
+      this.tempNodes = this.nodes.map((point, i) => this.ce(this.getSVGTag('circle'), {
+        on: {
+          mouseover: this.highlightNode.bind(this),
+          mouseout: this.highlightNode.bind(this)
+        },
+        class: 'node',
+        'data-index': i,
+        cx: `${x + point.x}`,
+        cy: `${y + point.y}`,
+        r: '5',
+        'stroke-width': '1',
+        fill: 'blue'
+      }));
       this.ac(this.element, this.tempNodes);
     }
   }
@@ -284,8 +278,8 @@ export default class Shape extends Drawable {
       position: {
         ...this.schema.position
       }
-    }
-    let offsetAxis = this.getOffsetAxis(node);
+    };
+    const offsetAxis = this.getOffsetAxis(node);
     this.line = Drawables.createComponent('stroke', this.parent, lineSchema);
     this.line.build(node, offsetAxis);
   }

@@ -1,20 +1,20 @@
 import Base from '../base/Base';
+import { Drawables } from '../drawables';
+import FlowEmitter from '../event-emitter/EventEmitter';
 import './palette.css';
-import {
-  Drawables
-} from '../drawables';
 
 export default class Palette extends Base {
   constructor() {
     super();
-    this.palette;
-    this.dragElem;
+    this.palette = null;
+    this.dragElem = null;
     this.zoom = 1;
-    document.addEventListener("onZoom", this.onZoom.bind(this), false);
+    this.events = FlowEmitter;
+    this.events.on('zoom', this.onZoom.bind(this));
   }
 
-  onZoom(e) {
-    this.zoom = e.detail.zoom;
+  onZoom(zoom) {
+    this.zoom = zoom;
   }
 
   dragStart(e) {
@@ -29,21 +29,19 @@ export default class Palette extends Base {
         padding: 0
       }
     });
-    this.dragElem.firstChild.style.transform = `scale(${this.zoom*2})`;
+    this.dragElem.firstChild.style.transform = `scale(${this.zoom * 2})`;
     document.getElementById('workflow').appendChild(this.dragElem);
     e.dataTransfer.setDragImage(this.dragElem, 50 * this.zoom, 25 * this.zoom);
   }
 
-  dragOver(e) {
+  dragOver() {
     this.dragElem.remove();
   }
 
   getPaletteItems() {
-    return Object.keys(Drawables.categories).map(category => {
-      if (category === 'strokes') {
-        return;
-      }
-      return this.ce('div', {
+    return Object.keys(Drawables.categories)
+      .filter(category => (category !== 'strokes'))
+      .map(category => this.ce('div', {
         class: 'category'
       }, [
         this.ce('div', {
@@ -53,15 +51,14 @@ export default class Palette extends Base {
           }
         }),
         this.ce('div', {
-            class: 'content'
-          },
-          Object.keys(Drawables.categories[category]).map(comp => this.ce('div', {
-            id: comp,
-            class: 'icon',
-            draggable: true
-          }, new Drawables.components[comp]().getIcon())))
-      ])
-    });
+          class: 'content'
+        },
+        Object.keys(Drawables.categories[category]).map(comp => this.ce('div', {
+          id: comp,
+          class: 'icon',
+          draggable: true
+        }, new Drawables.components[comp]().getIcon())))
+      ]));
   }
 
   create() {

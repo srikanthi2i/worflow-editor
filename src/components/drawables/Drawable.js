@@ -32,9 +32,8 @@ export default class Drawable extends Component {
       this.design = {
         ...this.design,
         ...options[this.schema.type]
-      }
+      };
     }
-    this.modalOptions;
     this.modal = null;
   }
 
@@ -46,7 +45,7 @@ export default class Drawable extends Component {
     return {
       x: pos.x / zoom,
       y: pos.y / zoom
-    }
+    };
   }
 
   startMove(e, zoom) {
@@ -57,7 +56,7 @@ export default class Drawable extends Component {
     const { x, y } = this.getMovedDistance(this.getCurrentPos(e, zoom), this.initial);
     this.element.style.transform = `translate(${x}px, ${y}px)`;
   }
-  
+
   stopMove(e, zoom) {
     this.element.style.transform = '';
     const moved = this.getMovedDistance(this.getCurrentPos(e, zoom), this.initial);
@@ -65,7 +64,7 @@ export default class Drawable extends Component {
     this.redraw();
     this.endMove();
   }
-  
+
   openModal(elem, options) {
     this.modal = new Modal(this.schema, options).open();
     this.ac(elem, this.modal);
@@ -77,7 +76,7 @@ export default class Drawable extends Component {
         click: this.deleteMenu.bind(this, cb, key, id)
       },
       keys: {
-        innerHTML: "Delete"
+        innerHTML: 'Delete'
       }
     }));
     return deleteMenu;
@@ -88,3 +87,4 @@ export default class Drawable extends Component {
     this.modal && this.modal.remove();
   }
 }
+  

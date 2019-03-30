@@ -1,4 +1,4 @@
-import Circle from "../shapes/Circle";
+import Circle from '../shapes/Circle';
 
 export default class Event extends Circle {
   static schema() {
@@ -11,10 +11,6 @@ export default class Event extends Circle {
 
   static design() {
     return Circle.design();
-  }
-
-  constructor(elem, schema, options) {
-    super(elem, schema, options);
   }
 
   get baseSchema() {

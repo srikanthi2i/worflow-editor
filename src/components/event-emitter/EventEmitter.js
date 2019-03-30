@@ -1,27 +1,5 @@
-class EventEmitter {
-  constructor() {
-    this.events = {};
-  }
+import { EventEmitter } from 'events';
 
-  subscribe(eventName, fn) {
-    document.addEventListener(eventName, fn);
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
-    }
-    this.events[eventName].push(fn);
-    return () => {
-      this.events[eventName] = this.events[eventName].filter(eventFn => fn !== eventFn);
-    }
-  }
+const FlowEmitter = new EventEmitter();
 
-  emit(eventName, data) {
-    const event = this.events[eventName];
-    if (event) {
-      var emitEvent = new CustomEvent(eventName, {
-        detail: data
-      });
-      document.dispatchEvent(emitEvent);
-    }
-  }
-}
-export default Object.freeze(new EventEmitter());
+export default FlowEmitter;
