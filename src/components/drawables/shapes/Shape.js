@@ -1,6 +1,7 @@
 import Drawable from '../Drawable';
-import Drawables from '../Drawables';
-
+import {
+  Drawables
+} from '..';
 export default class Shape extends Drawable {
   static schema(...extend) {
     return Drawable.schema({
@@ -26,7 +27,7 @@ export default class Shape extends Drawable {
 
   constructor(elem, schema, options) {
     super(elem, schema, options);
-    this.component = null;
+    this.components = [];
   }
 
   get baseSchema() {
@@ -38,22 +39,24 @@ export default class Shape extends Drawable {
   }
 
   get nodes() {
-    this._nodes = [{
-      x: 50,
-      y: 0
-    },
-    {
-      x: 100,
-      y: 50
-    },
-    {
-      x: 50,
-      y: 100
-    },
-    {
-      x: 0,
-      y: 50
-    }
+    //note: Node should start from the first quad
+    this._nodes = [
+      {
+        x: 0,
+        y: -50
+      },
+      {
+        x: 50,
+        y: 0
+      },
+      {
+        x: 0,
+        y: 50
+      },
+      {
+        x: -50,
+        y: 0
+      }
     ];
     return this._nodes;
   }
@@ -211,8 +214,8 @@ export default class Shape extends Drawable {
         },
         class: 'node',
         'data-index': i,
-        cx: `${x + point.x}`,
-        cy: `${y + point.y}`,
+        cx: `${x + this.design.width/2 + point.x}`,
+        cy: `${y + this.design.height/2 + point.y}`,
         r: '5',
         'stroke-width': '1',
         fill: 'blue'
@@ -237,31 +240,64 @@ export default class Shape extends Drawable {
     this.highlighted = null;
   }
 
-  startMove(e, zoom) {
+  startMove(e, zoom, component) {
     if (e.target.classList.contains('node')) {
       this.parent.style.cursor = 'crosshair';
-      this.beginLineConnect(e);
+      const nodeIndex = e.target.dataset.index;
+      const node = this.nodes[nodeIndex];
+      const schema = {
+        position: {
+          x: this.schema.position.x + node.x + this.design.width / 2,
+          y: this.schema.position.y + node.y + this.design.height / 2
+        },
+        node: nodeIndex
+      }
+      this.line = this.beginLineConnect(schema);
       this.line.startMove(e, zoom);
     } else {
       super.startMove(e, zoom);
+      this.schema.out.forEach(line => {
+        const lineElement = this.beginLineConnect(line);
+        lineElement.startMove(e, zoom);
+        if ((component && (component._id === line.destination)) || !component) {
+          this.components.push(lineElement);
+        }
+      });
     }
   }
 
-  trackMove(e, zoom) {
+  trackMove(e, zoom, component) {
     if (this.line) {
       this.line.trackMove(e, zoom);
     } else {
-      super.trackMove(e, zoom);
+      if (component) {
+        component.trackMove(e, zoom);
+      } else {
+        super.trackMove(e, zoom);
+      }
+      this.moveOutLines(e, zoom, component);
     }
   }
 
-  stopMove(e, zoom) {
+  stopMove(e, zoom, component) {
     if (this.line) {
       this.parent.style.cursor = '';
       this.line.stopMove(e, zoom);
       this.endLineConnect(e);
     } else {
-      super.stopMove(e, zoom);
+      if (!component) {
+        super.stopMove(e, zoom);
+      }
+      this.components.forEach(line => {
+        if ((component && (component._id === line.schema.destination)) || !component) {
+          this.schema.out.forEach((outLine, index) => {
+            if (outLine.id === line.schema.id) {
+              this.schema.out.splice(index, 1, line.schema)
+            }
+          });
+        }
+      });
+      this.components = [];
     }
   }
 
@@ -272,16 +308,11 @@ export default class Shape extends Drawable {
     return 'x';
   }
 
-  beginLineConnect(e) {
-    const node = this.nodes[e.target.dataset.index];
-    const lineSchema = {
-      position: {
-        ...this.schema.position
-      }
-    };
-    const offsetAxis = this.getOffsetAxis(node);
-    this.line = Drawables.createComponent('stroke', this.parent, lineSchema);
-    this.line.build(node, offsetAxis);
+  beginLineConnect(schema) {
+    const node = this.nodes[schema.node];
+    const line = Drawables.createComponent('stroke', this.parent, schema);
+    line.build(node);
+    return line;
   }
 
   endLineConnect(e) {
@@ -290,5 +321,15 @@ export default class Shape extends Drawable {
     } else {
       this.line.element.remove();
     }
+  }
+
+  moveOutLines(e, zoom, component = this) {
+    this.components.forEach(lineElement => {
+      lineElement.alignLine(e, zoom, component);
+    });
+  }
+
+  changeNodePosition(nodeIndex) {
+    this.schema.nodeIndex = nodeIndex;
   }
 }

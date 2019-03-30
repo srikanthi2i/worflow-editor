@@ -122,6 +122,12 @@ export default class Workspace extends Component {
     } else if (id.indexOf('flow') === 0) {
       this.component = this.getComponentById(this.components, id);
       this.component && this.component.startMove(e, this.workspace.zoom);
+      if (!e.target.classList.contains('node')) {
+        this.component.schema.in.forEach(line => {
+          const source = this.getComponentById(this.components, line.source);
+          source.startMove(e, this.workspace.zoom, this.component);
+        });
+      }
     }
   }
 
@@ -131,6 +137,12 @@ export default class Workspace extends Component {
     }
     if (this.component) {
       this.component.trackMove(e, this.workspace.zoom);
+      if (!e.target.classList.contains('node')) {
+        this.component.schema.in.forEach(line => {
+          const source = this.getComponentById(this.components, line.source);
+          source.trackMove(e, this.workspace.zoom, this.component)
+        });
+      }
     } else {
       this.initial && this.trackMove(e);
     }
@@ -142,6 +154,11 @@ export default class Workspace extends Component {
     }
     if (this.component) {
       this.component.stopMove(e, this.workspace.zoom);
+      this.component.schema.in.forEach(line => {
+        const source = this.getComponentById(this.components, line.source);
+        source.stopMove(e, this.workspace.zoom, this.component);
+        this.updateFlowsByComponent(source);
+      });
       this.updateFlowsByComponent(this.component);
       this.component.line = null;
       this.component = null;
@@ -158,14 +175,20 @@ export default class Workspace extends Component {
       }
       if (line) {
         if (flow.id === line.schema.destination) {
-          this.flows[i].in.push(line.schema.id);
+          this.flows[i].in.push({
+            id: line.schema.id,
+            source: schema.id
+          });
         }
       }
     });
   }
 
   startMove(e) {
-    this.setUpMove({ x: e.x, y: e.y });
+    this.setUpMove({
+      x: e.x,
+      y: e.y
+    });
     this.element.style.transition = 'none';
     this.element.style.transitionTimingFunction = 'unset';
   }
